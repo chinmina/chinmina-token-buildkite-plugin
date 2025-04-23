@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# Assign GITHUB_TOKEN retrieved from `chinmina-bridge` using the OIDC token from Buildkite
+# This *must* run before the shimming occurs, otherwise specify *which* curl to use.
+url="http://chinmina-bridge" # this is the docker-compose service name
+audience="github-app-auth:chinmina"
+profile="org:buildkite-plugin-testing"
+
+# Get buildkite OIDC
+oidc_auth_token="$(buildkite-agent oidc request-token --claim pipeline_id --audience "${audience}")"
+
+token=$(curl --silent --show-error --fail \
+  --request POST "${url}/organization/token/${profile}" \
+  --header "Authorization: Bearer ${oidc_auth_token}" \
+  --header "Content-Type: text/plain" \
+  --header "Accept: text/plain")
+
+echo "Token: ${token}"
+
+export GITHUB_TOKEN="${token}"
+
+# On the Buildkite instance, the plugin is saved in a path based on the agent's name that pulled it
+id="$BUILDKITE_AGENT_NAME"
+origin="github-com"
+org="chinmina"
+repo="chinminia-private-releases-buildkite-plugin"
+
+# Version is inferred from $BUILDKITE_PLUGINS environment variable
+# ex. [{"github.com/chinmina/chinmina-private-releases-buildkite-plugin#version-number/branch/SHA":null}]
+# Extract the plugin key based on a name match of the plugin repository
+
+plugin_key=$(jq \
+  --raw-output \
+  --arg org "$org" \
+  --arg repo "$repo" \
+  '.[] | to_entries[] | select(.key | test($org/$repo)) | .key' <<< "$BUILDKITE_PLUGINS")
+
+# $repo is now not-needed going forward since $plugin-key includes the $repo and the version at the
+# end. So we can extract this, rather than just the version number, which could be potentially
+# undefined.
+# This also means we can support the scenario where if users do not specify the version of their 
+# Buildkite plugin for whatever reason.
+
+plugin_name_version=$(echo "$plugin_key" | awk -F'/' '{print $NF}')
+
+# Put this all together and we got our final plugin path
+plugin_path="$BUILDKITE_PLUGINS_PATH/$id/$origin-$org-$plugin_name_version/command.sh"
+
+echo "--- shimming curl to: $plugin_path curl"
+alias curl="/bin/bash \$plugin_path curl"
+
+echo "--- shimming wget to: $plugin_path wget"
+alias wget="/bin/bash \$plugin_path wget"
