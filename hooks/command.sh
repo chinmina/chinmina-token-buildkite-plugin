@@ -61,11 +61,11 @@ get_release_manifest() {
   local url="$2"
 
   if [ -z "${url}" ]; then
-    echo "release url is not specified for get_release_manifest"
+    echo -e "\e[31release url is not specified for get_release_manifest\e[0m" >/dev/stderr
     exit 1
   fi
 
-  echo "retrieving release manifest from $url"
+  #echo "retrieving release manifest from $url" >/dev/stdout
 
   if [[ "$cmd" == "curl" ]]; then
     local release_manifest
@@ -103,12 +103,12 @@ get_release_manifest() {
 get_release_filename() {
   local url="$1"
 
-  echo "retrieving release filename based on $url"
+  #echo "retrieving release filename based on $url" >/dev/stdout
 
   local release_filename
   release_filename=$(echo "$url" | awk -F'/' '{print $NF}')
   
-  echo "release filename is: $release_filename"
+  #echo "release filename is: $release_filename" >/dev/stdout
   
   echo "$release_filename"
 }
@@ -119,7 +119,7 @@ get_release_filename() {
 get_release_url() {
   local url="$1"
 
-  echo "retrieving release url based on $url"
+  #echo "retrieving release url based on $url" >/dev/stdout
   
   local org
   org=$(echo "$url" | awk -F'/' '{print $4}')
@@ -132,7 +132,7 @@ get_release_url() {
   
   local releases_url="https://api.github.com/repos/$org/$repo/releases/tags/$tag"
 
-  echo "release url is: $releases_url"
+  #echo "release url is: $releases_url" >/dev/stdout
 
   echo "$releases_url"
 }
@@ -143,7 +143,7 @@ validate_tooling() {
   local cmd="$1"
 
   if [[ "$cmd" != "curl" && "$cmd" != "wget" ]]; then
-    echo "Unsupported command: $cmd"
+    echo -e "\e[31Unsupported command: $cmd\e[0m" >/dev/stderr
     exit 1
   fi
 }
@@ -155,7 +155,7 @@ main() {
   validate_tooling "$cmd"
   
   if [ -z "${url}" ]; then
-    echo "url is not specified"
+    echo -e "\e[31murl is not specified\e[0m" >/dev/stderr
     exit 1
   fi
 
