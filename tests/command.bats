@@ -2,7 +2,7 @@
 
 load "${BATS_PLUGIN_PATH}/load.bash"
 
-load '../hooks/command'
+load '../lib/download.bash'
 
 # Uncomment the following line to debug stub failures
 # export [stub_command]_STUB_DEBUG=/dev/tty
@@ -33,7 +33,7 @@ teardown(){
 @test "Tests conversion of github baseURL to github api releaseURL" {
      
     input_url="https://github.com/cultureamp/deploy-buildkite-plugin/releases/download/v0.1/deploy-buildkite-plugin_darwin_arm64"
-    expected_output="https://api.github.com/repos/cultureamp/deploy-buildkite-plugin/releases/tags/v1.0.0"
+    expected_output="https://api.github.com/repos/cultureamp/deploy-buildkite-plugin/releases/tags/v0.1"
 
     run get_release_url "$input_url"
 
