@@ -8,20 +8,5 @@ description: |
 author: https://github.com/chinmina
 requirements: []
 configuration:
-  properties:
-    chinmina-url:
-      type: string
-      description: The URL of the Chinmina Bridge agent that creates a token for a pipeline.
-    audience:
-      type: string
-      description: |
-        (Default `chinmina:default`.) The audience to use for the Buildkite OIDC
-        JWT that is sent to the vendor agent. Must match the setting in the
-        vendor agent.
-    profiles:
-      type: array
-      description: |
-        An array of profiles to use for the Git credential helper. If unset,
-        the default profile and endpoint will be used to obtain tokens for the
-        current pipeline.
+  properties: {}
   additionalProperties: false
