@@ -1,32 +1,33 @@
 #!/bin/bash
 
 main() {
-  local cmd="$1"
-  local url="$2"
+  echo "hello world"
+  # local cmd="$1"
+  # local url="$2"
 
-  dir="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
-  # shellcheck source=../lib/download.sh
-  . "$dir/../lib/download.sh"
+  # dir="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
+  # # shellcheck source=../lib/download.sh
+  # . "$dir/../lib/download.sh"
 
-  validate_tooling "$cmd"
+  # validate_tooling "$cmd"
   
-  if [ -z "${url}" ]; then
-    echo -e "\e[31murl is not specified\e[0m" >/dev/stderr
-    exit 1
-  fi
+  # if [ -z "${url}" ]; then
+  #   echo -e "\e[31murl is not specified\e[0m" >/dev/stderr
+  #   exit 1
+  # fi
 
-  release_url=$(get_release_url "$url")
-  echo "$release_url"
-  release_filename=$(get_release_filename "$url")
-  echo "$release_filename"
-  release_manifest=$(get_release_manifest "$cmd" "$release_url")
-  echo "$release_manifest"
-  echo "Before calling asset url"
-  asset_url=$(get_asset_url "$release_manifest" "$release_filename")
+  # release_url=$(get_release_url "$url")
+  # echo "$release_url"
+  # release_filename=$(get_release_filename "$url")
+  # echo "$release_filename"
+  # release_manifest=$(get_release_manifest "$cmd" "$release_url")
+  # echo "$release_manifest"
+  # echo "Before calling asset url"
+  # asset_url=$(get_asset_url "$release_manifest" "$release_filename")
 
-  local called_from_dir
-  called_from_dir=$(pwd)
-  download_release "$asset_url" "$release_filename" "$called_from_dir"
+  # local called_from_dir
+  # called_from_dir=$(pwd)
+  # download_release "$asset_url" "$release_filename" "$called_from_dir"
 }
 
 main "$@"

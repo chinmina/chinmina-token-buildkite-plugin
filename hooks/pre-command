@@ -36,20 +36,21 @@ echo "--- shimming wget to: $plugin_path wget"
 alias wget="/bin/bash \$plugin_path curl"
 
 
-# Assign GITHUB_TOKEN retrieved from `chinmina-bridge` using the OIDC token from Buildkite
-url="http://chinmina-bridge" # this is the docker-compose service name
-audience="github-app-auth:chinmina"
-profile="org:buildkite-plugin-testing"
+#FIXME: Token machine broke
+# # Assign GITHUB_TOKEN retrieved from `chinmina-bridge` using the OIDC token from Buildkite
+# url="http://chinmina-bridge" # this is the docker-compose service name
+# audience="github-app-auth:chinmina"
+# profile="org:buildkite-plugin-testing"
 
-# Get buildkite OIDC
-oidc_auth_token="$(buildkite-agent oidc request-token --claim pipeline_id --audience "${audience}")"
+# # Get buildkite OIDC
+# oidc_auth_token="$(buildkite-agent oidc request-token --claim pipeline_id --audience "${audience}")"
 
-token=$(curl --silent --show-error --fail \
-  --request POST "${url}/organization/token/${profile}" \
-  --header "Authorization: Bearer ${oidc_auth_token}" \
-  --header "Content-Type: text/plain" \
-  --header "Accept: text/plain")
+# token=$(curl --silent --show-error --fail \
+#   --request POST "${url}/organization/token/${profile}" \
+#   --header "Authorization: Bearer ${oidc_auth_token}" \
+#   --header "Content-Type: text/plain" \
+#   --header "Accept: text/plain")
 
-echo "Token: ${token}"
+# echo "Token: ${token}"
 
-export GITHUB_TOKEN="${token}"
+# export GITHUB_TOKEN="${token}"
