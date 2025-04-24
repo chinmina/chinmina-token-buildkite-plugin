@@ -13,7 +13,7 @@ setup(){
     TEST_ROOT=$(mktemp -d)
 
     #Path to the shim
-    SHIM_DIR="$BATS_TEST_DIRNAME/../hooks"
+    SHIM_DIR="$BATS_TEST_DIRNAME/../lib"
 
     CALLER_DIR="$TEST_ROOT/shim_caller"
     mkdir -p "$CALLER_DIR"
@@ -27,6 +27,7 @@ setup(){
 
 teardown(){
     unstub curl 
+    unstub wget
     rm -rf "$TEST_ROOT"
 }
 
@@ -58,20 +59,39 @@ teardown(){
     assert_output --partial "release url is not specified"
 }
 
-@test "download_release downloads file using curl into the caller's directory" {
+@test "download_release downloads file using curl into the caller's current working directory" {
 
     stub curl \
-    "echo '[stub] curl called with args: \$@' >&2; touch \$2"
+    "echo '[stub] curl called with args: \$@' >&2; touch $TEST_FILENAME"
 
-    pushd "$CALLER_DIR"
+    pushd $CALLER_DIR
     run bash -c "
-        source '$SHIM_DIR/command.sh'
+        source '$SHIM_DIR/download.bash'
         cmd='curl'
         download_release '$TEST_URL' '$TEST_FILENAME' '$(pwd)'
     "
-    popd
     assert_success
-    assert_file_exist "$CALLER_DIR/$TEST_FILENAME"
+    assert_file_exist "$TEST_FILENAME"
+
+    popd
+
+}
+
+@test "download_release downloads file using wget into the caller's current working directory" {
+
+    stub wget \
+    "echo '[stub] wget called with args: \$@' >&2; touch $TEST_FILENAME"
+
+    pushd $CALLER_DIR
+    run bash -c "
+        source '$SHIM_DIR/download.bash'
+        cmd='wget'
+        download_release '$TEST_URL' '$TEST_FILENAME' '$(pwd)'
+    "
+    assert_success
+    assert_file_exist "$TEST_FILENAME"
+
+    popd
 
 }
 
