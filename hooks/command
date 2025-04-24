@@ -30,6 +30,3 @@ main() {
 }
 
 main "$@"
-
-# TODOS:
-# - Write BATS tests
