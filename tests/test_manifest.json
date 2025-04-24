@@ -1,0 +1,13 @@
+{
+    "assets": [
+      {
+        "url": "https://api.github.com/repos/cultureamp/example-buildkite-plugin/releases/assets/228342144",
+        "name": "release_arm64",
+        "label": "",
+        "uploader": {
+          "login": "github-actions[bot]"
+        },
+        "content_type": "application/octet-stream"
+      }
+    ]
+  }

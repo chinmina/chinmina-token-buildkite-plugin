@@ -95,15 +95,12 @@ teardown(){
 
 }
 
-# @test "download_release downloads file using wget into the caller's directory" {
+@test "checks if get_asset_url parses the json file and outputs the correct url" {
 
-#     pushd "$TEST_DIR" > /dev/null
-#     run bash -c "
-#         source '$SHIM_DIR/command.sh'
-#         cmd='wget'
-#         download_release '$TEST_URL' '$TEST_FILENAME' '$(pwd)'
-#     "
-#     popd > /dev/null
-#     assert_success
-#     assert_file_exist "$TEST_DIR/$TEST_FILENAME" 
-# }
+    release_manifest=$(<tests/test_manifest.json)
+
+    run get_asset_url "$release_manifest" "$TEST_FILENAME"
+
+    assert_success
+    assert_output "https://api.github.com/repos/cultureamp/example-buildkite-plugin/releases/assets/228342144"
+}
