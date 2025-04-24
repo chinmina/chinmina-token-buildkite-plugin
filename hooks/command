@@ -5,8 +5,8 @@ main() {
   local url="$2"
 
   dir="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
-  # shellcheck source=../lib/download.bash
-  . "$dir/../lib/download.bash"
+  # shellcheck source=../lib/download.sh
+  . "$dir/../lib/download.sh"
 
   validate_tooling "$cmd"
   

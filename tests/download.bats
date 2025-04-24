@@ -2,7 +2,7 @@
 
 load "${BATS_PLUGIN_PATH}/load.bash"
 
-load '../lib/download.bash'
+load '../lib/download.sh'
 
 # Uncomment the following line to debug stub failures
 # export [stub_command]_STUB_DEBUG=/dev/tty
@@ -66,7 +66,7 @@ teardown(){
 
     pushd $CALLER_DIR
     run bash -c "
-        source '$SHIM_DIR/download.bash'
+        source '$SHIM_DIR/download.sh'
         cmd='curl'
         download_release '$TEST_URL' '$TEST_FILENAME' '$(pwd)'
     "
@@ -84,7 +84,7 @@ teardown(){
 
     pushd $CALLER_DIR
     run bash -c "
-        source '$SHIM_DIR/download.bash'
+        source '$SHIM_DIR/download.sh'
         cmd='wget'
         download_release '$TEST_URL' '$TEST_FILENAME' '$(pwd)'
     "
