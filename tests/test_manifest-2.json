@@ -1,0 +1,13 @@
+{
+  "assets": [
+    {
+      "url": "https://not-a-real-website-lmao",
+      "name": "release_x86_64",
+      "label": "",
+      "uploader": {
+        "login": "github-actions[bot]"
+      },
+      "content_type": "application/octet-stream"
+    }
+  ]
+}

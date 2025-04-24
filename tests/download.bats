@@ -31,7 +31,7 @@ teardown(){
     rm -rf "$TEST_ROOT"
 }
 
-@test "Tests conversion of github baseURL to github api releaseURL" {
+@test "Tests conversion of github baseURL to github api releaseURL - standard variation" {
      
     input_url="https://github.com/cultureamp/deploy-buildkite-plugin/releases/download/v0.1/deploy-buildkite-plugin_darwin_arm64"
     expected_output="https://api.github.com/repos/cultureamp/deploy-buildkite-plugin/releases/tags/v0.1"
@@ -43,9 +43,31 @@ teardown(){
 
 }
 
-@test "Retrieves filename from github baseURL" {
+@test "Tests conversion of github baseURL to github api releaseURL - another variation" {
+     
+    input_url="https://github.com/unicorn-co/jabroni-buildkite-plugin/releases/download/v1.2.3/jabroni-buildkite-plugin_darwin_arm64"
+    expected_output="https://api.github.com/repos/unicorn-co/jabroni-buildkite-plugin/releases/tags/v1.2.3"
+
+    run get_release_url "$input_url"
+
+    assert_success 
+    assert_output "$expected_output"
+
+}
+
+@test "Retrieves filename \"deploy-buildkite-plugin_darwin_arm64\" from standard github baseURL" {
     input_url="https://github.com/cultureamp/deploy-buildkite-plugin/releases/download/v0.1/deploy-buildkite-plugin_darwin_arm64"
     expected_output="deploy-buildkite-plugin_darwin_arm64"
+
+    run get_release_filename "$input_url"
+
+    assert_success 
+    assert_output "$expected_output"
+}
+
+@test "Retrieves filename \"my-cool-file-123\" from standard github baseURL" {
+    input_url="https://github.com/cultureamp/deploy-buildkite-plugin/releases/download/v0.1/my-cool-file-123"
+    expected_output="my-cool-file-123"
 
     run get_release_filename "$input_url"
 
@@ -95,12 +117,22 @@ teardown(){
 
 }
 
-@test "checks if get_asset_url parses the json file and outputs the correct url" {
+@test "checks if get_asset_url parses the test_manifest-1 json file and outputs the correct url" {
 
-    release_manifest=$(<tests/test_manifest.json)
+    release_manifest=$(<tests/test_manifest-1.json)
 
     run get_asset_url "$release_manifest" "$TEST_FILENAME"
 
     assert_success
     assert_output "https://api.github.com/repos/cultureamp/example-buildkite-plugin/releases/assets/228342144"
+}
+
+@test "checks if get_asset_url parses the test_manifest-2 json file and outputs the correct url" {
+
+    release_manifest=$(<tests/test_manifest-2.json)
+
+    run get_asset_url "$release_manifest" "release_x86_64"
+
+    assert_success
+    assert_output "https://not-a-real-website-lmao"
 }
