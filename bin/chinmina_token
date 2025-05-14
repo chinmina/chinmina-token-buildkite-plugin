@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# This script is responsible for getting a token for a given profile (or the default)
+profile_name=$1
+oidc_cached_path="/tmp/oidc_auth_token_${BUILDKITE_JOB_ID}.cache"
+
+if [[ ${profile_name} == "default" || ${profile_name} == "repo:default" ]]; then
+  path="git-credentials"
+else
+  path="organization/git-credentials/${profile_name}"
+fi
+
+oidc_auth_token=$(cat "$oidc_cached_path")
+
+echo "Token loaded for org profile: ${profile_name}"
