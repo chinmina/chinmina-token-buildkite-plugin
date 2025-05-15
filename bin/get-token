@@ -1,6 +1,0 @@
-#!/bin/bash
-
-set -euo pipefail
-
-token="$(chinmina_token "org:profile-name")"
-export GITHUB_TOKEN="$token"

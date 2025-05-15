@@ -12,4 +12,16 @@ fi
 
 oidc_auth_token=$(cat "$oidc_cached_path")
 
-echo "Token loaded for org profile: ${profile_name}"
+echo "Buildkite token loaded for org profile: ${profile_name}"
+
+# Is this the url: https://chinmina.usw2.ci.cultureamp.io/ ?
+# POST request to fetch token from Github App
+# TODO: Define 'url' and 'args'
+chinmina_token=$(curl --silent --show-error --fail \
+  --request POST "${url}/${path}" \
+  --data "${args}" \
+  --header "Authorization: Bearer ${oidc_auth_token}" \
+  --header "Content-Type: text/plain" \
+  --header "Accept: text/plain")
+
+echo "$chinmina_token"  
