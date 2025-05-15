@@ -1,7 +1,7 @@
-name: Github App Auth
+name: Chinmina Token Library
 description: |
-  Adds a Git credential helper that authorizes a pipeline to access its Github
-  using HTTPS and a time-limited token.
+  Adds a chinmina token command, that helps in fetching github app token
+  to download private releases.
 
   The helper agent (separate) is accessed via HTTP, using the Buildkite Agent
   OIDC token as its authorization.
@@ -15,13 +15,11 @@ configuration:
     audience:
       type: string
       description: |
-        (Default `chinmina:default`.) The audience to use for the Buildkite OIDC
+        (Default `chinmina:default`) The audience to use for the Buildkite OIDC
         JWT that is sent to the vendor agent. Must match the setting in the
         vendor agent.
-    profiles:
-      type: array
+    profile:
+      type: string
       description: |
-        An array of profiles to use for the Git credential helper. If unset,
-        the default profile and endpoint will be used to obtain tokens for the
-        current pipeline.
+        Org profile name to fetch the chinmina token from Github App
   additionalProperties: false
