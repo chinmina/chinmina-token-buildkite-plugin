@@ -3,20 +3,20 @@
 # This script is responsible for getting a token for a given profile (or the default)
 profile_name=$1
 oidc_cached_path="/tmp/oidc_auth_token_${BUILDKITE_JOB_ID}.cache"
+url="https://chinmina.usw2.ci.cultureamp.io" # TODO: Make 'url' configurable from plugin inputs.
+args="" # No data is required to fetch the token
 
 if [[ ${profile_name} == "default" || ${profile_name} == "repo:default" ]]; then
-  path="git-credentials"
+  path="token"
 else
-  path="organization/git-credentials/${profile_name}"
+  path="organization/token/${profile_name}"
 fi
 
 oidc_auth_token=$(cat "$oidc_cached_path")
 
 echo "Buildkite token loaded for org profile: ${profile_name}"
 
-# Is this the url: https://chinmina.usw2.ci.cultureamp.io/ ?
 # POST request to fetch token from Github App
-# TODO: Define 'url' and 'args'
 chinmina_token=$(curl --silent --show-error --fail \
   --request POST "${url}/${path}" \
   --data "${args}" \
