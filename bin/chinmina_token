@@ -17,11 +17,14 @@ oidc_auth_token=$(cat "$oidc_cached_path")
 echo "Buildkite token loaded for org profile: ${profile_name}"
 
 # POST request to fetch token from Github App
-chinmina_token=$(curl --silent --show-error --fail \
+chinmina_response=$(curl --silent --show-error --fail \
   --request POST "${url}/${path}" \
   --data "${args}" \
   --header "Authorization: Bearer ${oidc_auth_token}" \
   --header "Content-Type: text/plain" \
   --header "Accept: text/plain")
+
+# Uses jq to filter the json object and retrieve the token value
+chinmina_token=$(echo "$chinmina_response" | jq '.token')
 
 echo "$chinmina_token"  
