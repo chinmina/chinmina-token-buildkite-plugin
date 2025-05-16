@@ -9,7 +9,7 @@ args="" # No data is required to fetch the token
 if [[ ${profile_name} == "default" || ${profile_name} == "repo:default" ]]; then
   path="token"
 else
-  path="organization/token/${profile_name}"s
+  path="organization/token/${profile_name}"
 fi
 
 oidc_auth_token=$(cat "$oidc_cached_path")
@@ -37,6 +37,5 @@ else
     echo "request failed: token not found"
     exit 1
 fi 
-# Uses jq to filter the json object and retrieve the token value
 
 echo "$chinmina_token"  
