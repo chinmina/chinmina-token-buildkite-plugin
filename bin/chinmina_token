@@ -1,10 +1,9 @@
 #!/bin/bash
 
-echo "This starts"
 # This script is responsible for getting a token for a given profile (or the default)
 profile_name=$1
 oidc_cached_path="/tmp/oidc_auth_token_${BUILDKITE_JOB_ID}.cache"
-url="https://chinmina.usw2.ci.cultureamp.io" # TODO: Make 'url' configurable from plugin inputs.
+url="$BUILDKITE_PLUGIN_CHINMINA_TOKEN_LIBRARY_CHINMINA_URL" # TODO: Make 'url' configurable from plugin inputs.
 args="" # No data is required to fetch the token
 
 if [[ ${profile_name} == "default" || ${profile_name} == "repo:default" ]]; then
@@ -25,12 +24,19 @@ chinmina_response=$(curl --silent --show-error --fail \
   --header "Content-Type: text/plain" \
   --header "Accept: text/plain")
 
-# Uses jq to filter the json object and retrieve the token value
-chinmina_token=$(echo "$chinmina_response" | jq '.token')
+echo "$chinmina_response" | jq .
+token_exists=$(echo "$chinmina_response" | jq 'has("token")')  
 
-if [ $? -ne 0 ]; then
-    echo "JSON parsing failed"
-    return 1
-fi
+if $token_exists; then
+    chinmina_token=$(echo "$chinmina_response" | jq '.token')
+    if [ ${#chinmina_token} -eq 0 ]; then
+        echo "request failed: token doesn't exist"
+        exit 1
+    fi
+else
+    echo "request failed: token not found"
+    exit 1
+fi 
+# Uses jq to filter the json object and retrieve the token value
 
 echo "$chinmina_token"  
