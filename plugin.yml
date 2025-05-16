@@ -18,8 +18,4 @@ configuration:
         (Default `chinmina:default`) The audience to use for the Buildkite OIDC
         JWT that is sent to the vendor agent. Must match the setting in the
         vendor agent.
-    profile:
-      type: string
-      description: |
-        Org profile name to fetch the chinmina token from Github App
   additionalProperties: false
