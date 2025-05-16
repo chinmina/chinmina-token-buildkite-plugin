@@ -25,19 +25,61 @@ setup(){
 teardown(){
     unstub curl 
     rm -rf $CACHE_FILE
+    
+    unset BUILDKITE_JOB_ID
+    unset BUILDKITE_PLUGIN_CHINMINA_TOKEN_LIBRARY_CHINMINA_URL
+    unset BUILDKITE_PLUGIN_CHINMINA_TOKEN_LIBRARY_AUDIENCE
 }
 
 @test "fetches the chinmina token for default profile by using the cached oidc token" {
 
     local profile="default"
 
-    stub curl "echo '{\"profile\": \"default\", \"organisationSlug\": \"test123\", \"token\": \"728282727\", \"expiry\": $(date +%s)}'"
+    stub curl "echo '{\"profile\": \"default\", \"organisationSlug\": \"org123\", \"token\": \"728282727\", \"expiry\": $(date +%s)}'"
 
-    run './bin/chinmina_token' "default"
+    run './bin/chinmina_token' $profile
 
     assert_success
     assert_output --partial "728282727"
 
+}
+
+@test "try to fetch the chinmina token for an invalid profile" {
+
+    local profile="org:invalid-profile"
+
+    stub curl "echo '{\"error\": \"invalid profile\"}'"
+
+    run './bin/chinmina_token' $profile
+
+    assert_failure
+    assert_output --partial "request failed: token not found"
+}
+
+@test "try to fetch the chinmina token for a profile without permissions" {
+
+    local profile="org:unauthorized-profile"
+
+    stub curl "echo '{\"profile\": \"default\", \"organisationSlug\": \"org123\", \"token\": "", \"expiry\": $(date +%s)}'"
+
+    run './bin/chinmina_token' $profile
+
+    assert_failure
+    assert_output --partial "request failed: token doesn't exist"
+}
+
+@test "Adds url and audience config" {
+    export BUILDKITE_PLUGIN_CHINMINA_TOKEN_LIBRARY_CHINMINA_URL=http://test-location
+    export BUILDKITE_PLUGIN_CHINMINA_TOKEN_LIBRARY_AUDIENCE=default
+  
+    local profile="default"
+
+    stub curl "echo '{\"profile\": \"default\", \"organisationSlug\": \"org123\", \"token\": \"728282727\", \"expiry\": $(date +%s)}'"
+
+    run './bin/chinmina_token' $profile
+
+    assert_success
+    assert_output --partial "728282727"
 }
 
 
