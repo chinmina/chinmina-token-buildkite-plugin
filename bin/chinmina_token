@@ -2,9 +2,22 @@
 
 # This script is responsible for getting a token for a given profile (or the default)
 profile_name=$1
-oidc_cached_path="/tmp/oidc_auth_token_${BUILDKITE_JOB_ID}.cache"
-url="$BUILDKITE_PLUGIN_CHINMINA_TOKEN_LIBRARY_CHINMINA_URL" # TODO: Make 'url' configurable from plugin inputs.
+cache_file="/tmp/oidc_auth_token_${BUILDKITE_JOB_ID}.cache"
+url="$BUILDKITE_PLUGIN_CHINMINA_TOKEN_LIBRARY_CHINMINA_URL"
+audience="$BUILDKITE_PLUGIN_CHINMINA_TOKEN_LIBRARY_AUDIENCE"
 args="" # No data is required to fetch the token
+
+# Caches the OIDC token for 5 minutes.
+if [[ -f "${cache_file}" && -s "${cache_file}" && $(find "${cache_file}" -mmin -5) ]]; then
+  oidc_auth_token="$(< "${cache_file}")"
+else 
+  # timings are output to stderr, which Git ignores.
+  TIMEFORMAT='[oidc = %2Rs]'
+  time {
+    oidc_auth_token="$(buildkite-agent oidc request-token --claim pipeline_id --audience "${audience}")"
+  }
+  echo "${oidc_auth_token}" > "${cache_file}"
+fi
 
 if [[ ${profile_name} == "default" || ${profile_name} == "repo:default" ]]; then
   path="token"
@@ -12,7 +25,7 @@ else
   path="organization/token/${profile_name}"
 fi
 
-oidc_auth_token=$(cat "$oidc_cached_path")
+oidc_auth_token=$(cat "$cache_file")
 
 echo "Buildkite token loaded for org profile: ${profile_name}"
 
