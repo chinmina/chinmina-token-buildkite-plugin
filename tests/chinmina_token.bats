@@ -12,11 +12,8 @@ setup(){
     export BUILDKITE_JOB_ID="7216989073"
     OIDC_TOKEN="example-token"
 
-    # TEST_ROOT=$(mktemp -d)
-
     #Path to the cache file
     CACHE_FILE="/tmp/oidc_auth_token_${BUILDKITE_JOB_ID}.cache"
-    echo "Name is: $CACHE_FILE"
     echo "$OIDC_TOKEN" > "$CACHE_FILE"
     export CACHE_FILE
 
@@ -53,19 +50,19 @@ teardown(){
     run './bin/chinmina_token' $profile
 
     assert_failure
-    assert_output --partial "request failed: token not found"
+    assert_output --partial "request failed: no token returned in Chinmina response"
 }
 
 @test "try to fetch the chinmina token for a profile without permissions" {
 
     local profile="org:unauthorized-profile"
 
-    stub curl "echo '{\"profile\": \"default\", \"organisationSlug\": \"org123\", \"token\": "", \"expiry\": $(date +%s)}'"
+    stub curl "echo '{\"profile\": \"default\", \"organisationSlug\": \"org123\", \"token\": \"\", \"expiry\": $(date +%s)}'"
 
     run './bin/chinmina_token' $profile
 
     assert_failure
-    assert_output --partial "request failed: token doesn't exist"
+    assert_output --partial "request failed: token doesn't exist in Chinmina response"
 }
 
 @test "Adds url and audience config" {
