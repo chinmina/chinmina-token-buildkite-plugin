@@ -39,11 +39,11 @@ token_exists=$(echo "$chinmina_response" | jq 'has("token")')
 if $token_exists; then
     chinmina_token=$(echo "$chinmina_response" | jq '.token')
     if [ ${#chinmina_token} -eq 0 ]; then
-        echo "request failed: token doesn't exist"
+        echo "request failed: token doesn't exist" >&2
         exit 1
     fi
 else
-    echo "request failed: token not found"
+    echo "request failed: token not found" >&2
     exit 1
 fi 
 
