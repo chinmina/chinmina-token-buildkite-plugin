@@ -1,5 +1,3 @@
-<!-- ./command.sh curl https://github.com/cultureamp/deploy-buildkite-plugin/releases/download/v0.1/deploy-buildkite-plugin_darwin_arm64 -->
-
 # chinmina-token-buildkite-plugin
 
 Buildkite plugin to fetch a chinmina token for the requested organization profile by using the cached OIDC token.

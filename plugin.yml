@@ -1,7 +1,6 @@
 name: Chinmina Token Library
 description: |
-  Adds a chinmina token command, that helps in fetching github app token
-  to download private releases.
+  Buildkite plugin to fetch a chinmina token for the requested organization profile by using the cached OIDC token.
 
   The helper agent (separate) is accessed via HTTP, using the Buildkite Agent
   OIDC token as its authorization.
