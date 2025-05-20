@@ -6,7 +6,6 @@ cache_file="/tmp/oidc_auth_token_${BUILDKITE_JOB_ID}.cache"
 url="$BUILDKITE_PLUGIN_CHINMINA_TOKEN_LIBRARY_CHINMINA_URL"
 audience="$BUILDKITE_PLUGIN_CHINMINA_TOKEN_LIBRARY_AUDIENCE"
 args="" # No data is required to fetch the token
-echo "URL is: ${url}"
 # Caches the OIDC token for 5 minutes.
 if [[ -f "${cache_file}" && -s "${cache_file}" && $(find "${cache_file}" -mmin -5) ]]; then
   oidc_auth_token="$(< "${cache_file}")"
@@ -27,8 +26,6 @@ fi
 
 oidc_auth_token=$(cat "$cache_file")
 
-echo "Buildkite token loaded for org profile: ${profile_name}"
-
 # POST request to fetch token from Github App
 chinmina_response=$(curl --silent --show-error --fail \
   --request POST "${url}/${path}" \
@@ -37,7 +34,6 @@ chinmina_response=$(curl --silent --show-error --fail \
   --header "Content-Type: text/plain" \
   --header "Accept: text/plain")
 
-echo "$chinmina_response" | jq .
 token_exists=$(echo "$chinmina_response" | jq 'has("token")')  
 
 if $token_exists; then
@@ -51,4 +47,4 @@ else
     exit 1
 fi 
 
-echo "$chinmina_token"  
+echo $chinmina_token  
