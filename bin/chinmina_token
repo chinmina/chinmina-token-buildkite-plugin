@@ -47,4 +47,4 @@ else
     exit 1
 fi 
 
-echo $chinmina_token  
+echo $chinmina_token | tr -d '"' 
