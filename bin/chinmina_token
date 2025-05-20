@@ -37,7 +37,7 @@ chinmina_response=$(curl --silent --show-error --fail \
 token_exists=$(echo "$chinmina_response" | jq 'has("token")')  
 
 if $token_exists; then
-    chinmina_token=$(echo "$chinmina_response" | jq '.token')
+    chinmina_token=$(echo "$chinmina_response" | jq -r '.token')
     if [ ${#chinmina_token} -eq 0 ]; then
         echo "request failed: token doesn't exist" >&2
         exit 1
@@ -47,4 +47,4 @@ else
     exit 1
 fi 
 
-echo $chinmina_token | tr -d '"' 
+echo $chinmina_token 
