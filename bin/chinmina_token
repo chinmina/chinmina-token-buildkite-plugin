@@ -40,10 +40,10 @@ if [[ "${token_exists}" == "false" ]]; then
   exit 1
 fi 
 
-chinmina_token="$(echo "$chinmina_response" | jq -r '.token')"
+chinmina_token=$(echo "$chinmina_response" | jq -r '.token')
 if [[ ${#chinmina_token} -eq 0 ]]; then
-  echo "request failed: empty token returned by Chinmina" >&2
-  exit 1
+    echo "request failed: token doesn't exist in Chinmina response" >&2
+    exit 1
 fi
 
 echo "${chinmina_token}" 

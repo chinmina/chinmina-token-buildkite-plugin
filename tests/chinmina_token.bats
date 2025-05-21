@@ -79,7 +79,7 @@ teardown(){
 
     local profile="org:unauthorized-profile"
 
-    stub curl "echo '{\"profile\": \"default\", \"organisationSlug\": \"org123\", \"token\": \"\", \"expiry\": $(date +%s)}'"
+    stub curl "echo '{\"profile\": \"${profile}\", \"organisationSlug\": \"org123\", \"token\": \"\", \"expiry\": $(date +%s)}'"
 
     run './bin/chinmina_token' $profile
 
@@ -93,7 +93,7 @@ teardown(){
   
     local profile="default"
 
-    stub curl "echo '{\"profile\": \"default\", \"organisationSlug\": \"org123\", \"token\": \"728282727\", \"expiry\": $(date +%s)}'"
+    stub curl "echo '{\"profile\": \"${profile}\", \"organisationSlug\": \"org123\", \"token\": \"728282727\", \"expiry\": $(date +%s)}'"
 
     run './bin/chinmina_token' $profile
 
