@@ -9,11 +9,11 @@ Add the following to your `pipeline.yml`:
 ```yml
 steps:
   - plugins:
-      - chinmina/chinmina-tokem#v1.0.0:
+      - chinmina/chinmina-token#v1.0.0:
           chinmina-url: "https://chinmina-bridge-url"
           audience: "chinmina:your-github-organization"
     command: |
-    	export GH_TOKEN=$$(chinmina_token "org:profile-name")
+      export GH_TOKEN=$$(chinmina_token "org:profile-name")
       gh release download ${tag} -R ${org}/${repo} --pattern "{filename}.zip"
 ```
 
