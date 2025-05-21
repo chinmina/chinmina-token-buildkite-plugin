@@ -1,6 +1,17 @@
 # chinmina-token-buildkite-plugin
 
-Buildkite plugin to fetch a chinmina token for the requested organization profile by using the cached OIDC token.
+Adds a `chinimina-token` script to the `PATH`, allowing agent scripts to retrieve
+a GitHub token from Chinmina for the current repository or for an 
+[organizational profile][organization-profiles].
+
+> [!NOTE]
+> Refer to the [Chinmina documentation][chinmina-integration] for detailed
+> information about configuring and using this plugin effectively.
+>
+> While this plugin can be used as a regular Buildkite plugin, it may be more
+> useful if the agent configuration is adjusted to include it on all steps.
+> This is fairly straightforward to implement in a custom `bootstrap` agent hook,
+> and an example of this is documented.
 
 ## Example
 
@@ -14,7 +25,8 @@ steps:
           audience: "chinmina:your-github-organization"
 ```
 
-To use the token and fetch private github releases, usage would be the following:
+To use the function to get a GitHub token, then fetch a private GitHub release
+asset, usage would be the following:
 
 ```bash
       export GH_TOKEN=$(chinmina_token "org:profile-name")
@@ -28,7 +40,7 @@ To use the token and fetch private github releases, usage would be the following
 
 ### `chinmina-url` (Required, string)
 
-The URL of the  helper agent that vends a
+The URL of the [`chinmina-bridge`][chinmina-bridge] helper agent that vends a
 token for a pipeline. This is a separate HTTP service that must accessible to
 your Buildkite agents.
 
@@ -37,7 +49,7 @@ your Buildkite agents.
 **Default:** `chinmina:default`
 
 The value of the `aud` claim of the OIDC JWT that will be sent to
-. This must correlate with the value
+[`chinmina-bridge`][chinmina-bridge]. This must correlate with the value
 configured in the `chinmina-bridge` settings.
 
 A recommendation: `chinmina:your-github-organization`. This is specific
@@ -67,3 +79,7 @@ Contributions are welcome! Raise a PR, and include tests with your changes.
 3. Run the tests and linter
 4. Commit and push your changes
 5. Send a pull request
+
+[chinmina-bridge]: https://chinmina.github.io/introduction/
+[chinmina-integration]: https://chinmina.github.io/guides/buildkite-integration/
+[organization-profiles]: https://chinmina.github.io/reference/organization-profile/
