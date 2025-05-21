@@ -12,15 +12,16 @@ steps:
       - chinmina/chinmina-token#v1.0.0:
           chinmina-url: "https://chinmina-bridge-url"
           audience: "chinmina:your-github-organization"
-    command: |
-      export GH_TOKEN=$$(chinmina_token "org:profile-name")
-      gh release download ${tag} -R ${org}/${repo} --pattern "{filename}.zip"
 ```
 
 To use the token and fetch private github releases, usage would be the following:
 
 ```bash
-
+      export GH_TOKEN=$(chinmina_token "org:profile-name")
+      gh releases download --repo "${repo}" \
+        --pattern "release-file=${arch}.zip" \
+        --dir "${directory}" \
+        "${tag}"
 ```
 
 ## Configuration
