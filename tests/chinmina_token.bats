@@ -48,6 +48,7 @@ teardown(){
 
     rm -rf $CACHE_FILE
     oidc_token="sample-token"
+    local profile="org:sample-profile"
 
     stub buildkite-agent \
        "oidc request-token --claim pipeline_id --audience "default" : echo '${oidc_token}'"
