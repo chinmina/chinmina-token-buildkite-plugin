@@ -17,6 +17,9 @@ setup(){
     echo "$OIDC_TOKEN" > "$CACHE_FILE"
     export CACHE_FILE
 
+    export BUILDKITE_PLUGIN_CHINMINA_TOKEN_LIBRARY_CHINMINA_URL="http://sample-chinmina-url"
+    export BUILDKITE_PLUGIN_CHINMINA_TOKEN_LIBRARY_AUDIENCE="default"
+
 }
 
 teardown(){
@@ -38,6 +41,25 @@ teardown(){
 
     assert_success
     assert_output --partial "728282727"
+
+}
+
+@test "fetches the chinmina token for an org profile without a cached oidc token" {
+
+    rm -rf $CACHE_FILE
+    oidc_token="sample-token"
+
+    stub buildkite-agent \
+       "oidc request-token --claim pipeline_id --audience "default" : echo '${oidc_token}'"
+
+    stub curl "echo '{\"profile\": \"profile-name\", \"organisationSlug\": \"org123\", \"token\": \"728282727\", \"expiry\": $(date +%s)}'"
+
+    run './bin/chinmina_token' $profile
+
+    assert_success
+    assert_output --partial "728282727"
+
+    unstub buildkite-agent
 
 }
 
