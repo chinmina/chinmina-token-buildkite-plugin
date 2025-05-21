@@ -16,8 +16,9 @@ setup() {
   echo "$OIDC_TOKEN" > "$CACHE_FILE"
   export CACHE_FILE
 
-  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL="http://sample-chinmina-url"
-  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_AUDIENCE="default"
+  # values configured by environment hook
+  export CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL="http://sample-chinmina-url"
+  export CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE="default"
 }
 
 teardown() {
@@ -25,8 +26,8 @@ teardown() {
   rm -rf $CACHE_FILE
 
   unset BUILDKITE_JOB_ID
-  unset BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL
-  unset BUILDKITE_PLUGIN_CHINMINA_TOKEN_AUDIENCE
+  unset CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL
+  unset CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE
 }
 
 @test "fetches the chinmina token for default profile by using the cached oidc token" {
@@ -83,8 +84,8 @@ teardown() {
 }
 
 @test "Adds url and audience config" {
-  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL=http://test-location
-  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_AUDIENCE=default
+  export CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL=http://test-location
+  export CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE=default
 
   local profile="default"
 

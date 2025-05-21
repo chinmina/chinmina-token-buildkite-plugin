@@ -2,6 +2,15 @@
 
 set -ueo pipefail
 
+# Add parameters to the environment so they're available to the chinmina_token helper script
+# This means that the plugin can't really be defined twice in step/agent hook, as the values
+# defined here will be overwritten by each successive hook execution (i.e. last one wins).
+#
+# This plugin is designed to be used in the "environment" agent hook, so there's no real desire
+# to have multiple versions sets of parameter values.
+export CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL="$BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL"
+export CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE="$BUILDKITE_PLUGIN_CHINMINA_TOKEN_AUDIENCE"
+
 HOOKS_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
 export PATH="$PATH:$HOOKS_DIR/../bin"
