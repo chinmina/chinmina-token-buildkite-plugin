@@ -1,6 +1,8 @@
 name: Chinmina Token
 description: |
-  Buildkite plugin to fetch a chinmina token for the requested organization profile by using the cached OIDC token.
+  Adds a `chinimina-token` script to the `PATH`, allowing agent scripts to retrieve
+  a GitHub token from Chinmina for the current repository or for an 
+  organizational profile.
 
   The helper agent (separate) is accessed via HTTP, using the Buildkite Agent
   OIDC token as its authorization.
