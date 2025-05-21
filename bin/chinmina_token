@@ -3,8 +3,8 @@
 # This script is responsible for getting a token for a given profile (or the default)
 profile_name=$1
 cache_file="/tmp/oidc_auth_token_${BUILDKITE_JOB_ID}.cache"
-url="$BUILDKITE_PLUGIN_CHINMINA_TOKEN_LIBRARY_CHINMINA_URL"
-audience="$BUILDKITE_PLUGIN_CHINMINA_TOKEN_LIBRARY_AUDIENCE"
+url="$BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL"
+audience="$BUILDKITE_PLUGIN_CHINMINA_TOKEN_AUDIENCE"
 args="" # No data is required to fetch the token
 
 # Caches the OIDC token for 5 minutes.
