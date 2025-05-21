@@ -23,9 +23,9 @@ setup(){
 }
 
 teardown(){
-    unstub curl 
+    unstub curl
     rm -rf $CACHE_FILE
-    
+
     unset BUILDKITE_JOB_ID
     unset BUILDKITE_PLUGIN_CHINMINA_TOKEN_LIBRARY_CHINMINA_URL
     unset BUILDKITE_PLUGIN_CHINMINA_TOKEN_LIBRARY_AUDIENCE
@@ -85,13 +85,13 @@ teardown(){
     run './bin/chinmina_token' $profile
 
     assert_failure
-    assert_output --partial "request failed: token doesn't exist in Chinmina response"
+    assert_output --partial "request failed: empty token returned in Chinmina response"
 }
 
 @test "Adds url and audience config" {
     export BUILDKITE_PLUGIN_CHINMINA_TOKEN_LIBRARY_CHINMINA_URL=http://test-location
     export BUILDKITE_PLUGIN_CHINMINA_TOKEN_LIBRARY_AUDIENCE=default
-  
+
     local profile="default"
 
     stub curl "echo '{\"profile\": \"${profile}\", \"organisationSlug\": \"org123\", \"token\": \"728282727\", \"expiry\": $(date +%s)}'"

@@ -10,7 +10,7 @@ args="" # No data is required to fetch the token
 # Caches the OIDC token for 5 minutes.
 if [[ -f "${cache_file}" && -s "${cache_file}" && $(find "${cache_file}" -mmin -5) ]]; then
   oidc_auth_token="$(< "${cache_file}")"
-else 
+else
   # timings are output to stderr, which Git ignores.
   TIMEFORMAT='[oidc = %2Rs]'
   time {
@@ -38,12 +38,12 @@ token_exists="$(echo "$chinmina_response" | jq 'has("token")')"
 if [[ "${token_exists}" == "false" ]]; then
   echo "request failed: no token returned in Chinmina response" >&2
   exit 1
-fi 
-
-chinmina_token=$(echo "$chinmina_response" | jq -r '.token')
-if [[ ${#chinmina_token} -eq 0 ]]; then
-    echo "request failed: token doesn't exist in Chinmina response" >&2
-    exit 1
 fi
 
-echo "${chinmina_token}" 
+chinmina_token="$(echo "$chinmina_response" | jq -r '.token')"
+if [[ ${#chinmina_token} -eq 0 ]]; then
+  echo "request failed: empty token returned in Chinmina response" >&2
+  exit 1
+fi
+
+echo "${chinmina_token}"
