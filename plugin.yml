@@ -1,6 +1,6 @@
 name: Chinmina Token
 description: |
-  Adds a `chinimina-token` script to the `PATH`, allowing agent scripts to retrieve
+  Adds a `chinmina-token` script to the `PATH`, allowing agent scripts to retrieve
   a GitHub token from Chinmina for the current repository or for an
   organizational profile.
 
