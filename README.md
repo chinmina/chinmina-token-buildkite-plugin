@@ -41,7 +41,7 @@ asset, usage would be the following:
 ### `chinmina-url` (Required, string)
 
 The URL of the  helper agent that vends a
-token for a pipeline. This is a separate HTTP service that must accessible to
+token for a pipeline. This is a separate HTTP service that must be accessible to
 your Buildkite agents.
 
 ### `audience` (string)
