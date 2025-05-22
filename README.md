@@ -1,7 +1,7 @@
 # chinmina-token-buildkite-plugin
 
-Adds a `chinimina-token` script to the `PATH`, allowing agent scripts to retrieve
-a GitHub token from Chinmina for the current repository or for an 
+Adds a `chinimina_token` script to the `PATH`, allowing agent scripts to retrieve
+a GitHub token from Chinmina for the current repository or for an
 [organizational profile][organization-profiles].
 
 > [!NOTE]
@@ -40,7 +40,7 @@ asset, usage would be the following:
 
 ### `chinmina-url` (Required, string)
 
-The URL of the [`chinmina-bridge`][chinmina-bridge] helper agent that vends a
+The URL of the  helper agent that vends a
 token for a pipeline. This is a separate HTTP service that must accessible to
 your Buildkite agents.
 
@@ -49,7 +49,7 @@ your Buildkite agents.
 **Default:** `chinmina:default`
 
 The value of the `aud` claim of the OIDC JWT that will be sent to
-[`chinmina-bridge`][chinmina-bridge]. This must correlate with the value
+. This must correlate with the value
 configured in the `chinmina-bridge` settings.
 
 A recommendation: `chinmina:your-github-organization`. This is specific
