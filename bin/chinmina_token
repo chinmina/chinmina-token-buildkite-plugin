@@ -6,7 +6,7 @@ url="$CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL"
 audience="$CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE"
 
 # This script is responsible for getting a token for a given profile (or the default)
-profile_name=$1
+profile_name=${1:-"default"}
 
 # File store for the cached OIDC token
 cache_file="/tmp/oidc_auth_token_${BUILDKITE_JOB_ID}.cache"
