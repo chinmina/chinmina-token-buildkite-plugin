@@ -25,7 +25,7 @@ steps:
           audience: "chinmina:your-github-organization"
 ```
 
-To use the function to get a GitHub token, then fetch a private GitHub release
+To get a GitHub token, then fetch a private GitHub release
 asset, usage would be the following:
 
 ```bash
