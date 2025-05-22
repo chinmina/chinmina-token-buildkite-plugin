@@ -30,6 +30,15 @@ teardown() {
   unset CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE
 }
 
+@test "fetches the chinmina token for default profile when no argument is provided" {
+  stub curl "echo '{\"profile\": \"default\", \"organisationSlug\": \"org123\", \"token\": \"default-token\", \"expiry\": $(date +%s)}'"
+
+  run './bin/chinmina_token'
+
+  assert_success
+  assert_output --partial "default-token"
+}
+
 @test "fetches the chinmina token for default profile by using the cached oidc token" {
   local profile="default"
 
