@@ -1,0 +1,24 @@
+name: Chinmina Token
+description: |
+  Adds a `chinmina_token` script to the `PATH`, allowing agent scripts to retrieve
+  a GitHub token from Chinmina for the current repository or for an
+  organizational profile.
+
+  The helper agent (separate) is accessed via HTTP, using the Buildkite Agent
+  OIDC token as its authorization.
+author: https://github.com/chinmina
+requirements: []
+configuration:
+  properties:
+    chinmina-url:
+      type: string
+      description: The URL of the Chinmina Bridge agent that creates a token for a pipeline.
+    audience:
+      type: string
+      description: |
+        (Default `chinmina:default`) The audience to use for the Buildkite OIDC
+        JWT that is sent to the vendor agent. Must match the setting in the
+        vendor agent.
+  additionalProperties: false
+  required:
+    - chinmina-url

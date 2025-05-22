@@ -1,0 +1,54 @@
+#!/bin/bash
+set -ueo pipefail
+
+# exported by plugin "environment" hook
+url="$CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL"
+audience="$CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE"
+
+# This script is responsible for getting a token for a given profile (or the default)
+profile_name=${1:-"default"}
+
+# File store for the cached OIDC token
+cache_file="/tmp/oidc_auth_token_${BUILDKITE_JOB_ID}.cache"
+
+# Caches the OIDC token for 5 minutes.
+if [[ -f "${cache_file}" && -s "${cache_file}" && $(find "${cache_file}" -mmin -5) ]]; then
+  oidc_auth_token="$(< "${cache_file}")"
+else
+  # timings are output to stderr, which Git ignores.
+  TIMEFORMAT='[oidc = %2Rs]'
+  time {
+    oidc_auth_token="$(buildkite-agent oidc request-token --claim pipeline_id --audience "${audience}")"
+  }
+  echo "${oidc_auth_token}" > "${cache_file}"
+fi
+
+if [[ ${profile_name} == "default" || ${profile_name} == "repo:default" ]]; then
+  path="token"
+else
+  path="organization/token/${profile_name}"
+fi
+
+# POST request to fetch token from Github App
+chinmina_response=$(curl --silent --show-error --fail \
+  --request POST "${url}/${path}" \
+  --data "" \
+  --header "Authorization: Bearer ${oidc_auth_token}" \
+  --header "Content-Type: text/plain" \
+  --header "Accept: application/json" \
+)
+
+token_exists="$(echo "$chinmina_response" | jq 'has("token")')"
+
+if [[ "${token_exists}" == "false" ]]; then
+  echo "request failed: no token returned in Chinmina response" >&2
+  exit 1
+fi
+
+chinmina_token="$(echo "$chinmina_response" | jq -r '.token')"
+if [[ ${#chinmina_token} -eq 0 ]]; then
+  echo "request failed: empty token returned in Chinmina response" >&2
+  exit 1
+fi
+
+echo "${chinmina_token}"
