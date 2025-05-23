@@ -40,7 +40,7 @@ asset, usage would be the following:
 
 ### `chinmina-url` (Required, string)
 
-The URL of the  helper agent that vends a
+The URL of the [`chinmina-bridge`][chinmina-bridge] helper agent that vends a
 token for a pipeline. This is a separate HTTP service that must be accessible to
 your Buildkite agents.
 
@@ -49,7 +49,7 @@ your Buildkite agents.
 **Default:** `chinmina:default`
 
 The value of the `aud` claim of the OIDC JWT that will be sent to
-. This must correlate with the value
+[`chinmina-bridge`][chinmina-bridge]. This must correlate with the value
 configured in the `chinmina-bridge` settings.
 
 A recommendation: `chinmina:your-github-organization`. This is specific
