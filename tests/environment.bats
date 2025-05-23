@@ -8,7 +8,7 @@ load "${BATS_PLUGIN_PATH}/load.bash"
 
 run_environment() {
   echo "Running environment hook with args: $*"
-  run bash -c 'source "$1" && env' _ "$1"
+  run bash -c 'source "$*" && env' _ "$*"
 }
 
 @test "fails when Chinmina url parameter is not set" {
