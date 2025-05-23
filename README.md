@@ -29,11 +29,19 @@ To get a GitHub token, then fetch a private GitHub release
 asset, usage would be the following:
 
 ```bash
-      export GH_TOKEN=$(chinmina_token "org:profile-name")
-      gh releases download --repo "${repo}" \
-        --pattern "release-file=${arch}.zip" \
-        --dir "${directory}" \
-        "${tag}"
+# use the helper function to get a token
+export GITHUB_TOKEN=$(chinmina_token "org:profile-name")
+
+# The GH CLI will use GITHUB_TOKEN as its authorization for any API requests:
+
+# ... show this to the console
+gh auth status
+
+# ... download a release from a private repo
+gh releases download --repo "${repo}" \
+  --pattern "release-file=${arch}.zip" \
+  --dir "${directory}" \
+  "${tag}"
 ```
 
 ## Configuration
