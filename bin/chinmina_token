@@ -32,7 +32,8 @@ else
 fi
 
 # POST request to fetch token from Github App
-chinmina_response=$(curl --silent --show-error --fail \
+chinmina_response=$(curl --retry 3 --retry-delay 1 --retry-connrefused \
+  --silent --show-error --fail \
   --request POST "${url}/${request_path}" \
   --data "" \
   --header "Authorization: Bearer ${oidc_auth_token}" \
