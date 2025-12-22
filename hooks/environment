@@ -14,3 +14,27 @@ export CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE="${BUILDKITE_PLUGIN_CHINMINA_TOK
 HOOKS_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
 export PATH="$PATH:$HOOKS_DIR/../bin"
+
+plugin_read_list() {
+  local prefix="$1"
+  local i=0
+  local parameter="${prefix}_${i}"
+
+  while [[ -n "${!parameter:-}" ]]; do
+    echo "${!parameter}"
+    i=$((i+1))
+    parameter="${prefix}_${i}"
+  done
+}
+
+while IFS='=' read -r var_name profile; do
+  if [[ ! "$var_name" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+    echo "Invalid variable name: '$var_name'" >&2
+    exit 1
+  fi
+  if [[ -z "$profile" ]]; then
+    echo "Empty profile for: '$var_name'" >&2
+    exit 1
+  fi
+  export "${var_name}=${profile}"  # interim: profile as value
+done < <(plugin_read_list BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT)

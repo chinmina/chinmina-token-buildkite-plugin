@@ -19,6 +19,11 @@ configuration:
         (Default `chinmina:default`) The audience to use for the Buildkite OIDC
         JWT that is sent to the vendor agent. Must match the setting in the
         vendor agent.
+    environment:
+      type: array
+      description: |
+        Array of environment variable assignments in the format 'VAR_NAME=profile'.
+        Each entry exports an environment variable containing a token from the specified profile.
   additionalProperties: false
   required:
     - chinmina-url
