@@ -53,4 +53,7 @@ if [[ ${#chinmina_token} -eq 0 ]]; then
   exit 1
 fi
 
+# ensure that the token is redacted in Buildkite logs
+buildkite-agent redactor add <<<"$chinmina_token" 2> /dev/null
+
 echo "${chinmina_token}"

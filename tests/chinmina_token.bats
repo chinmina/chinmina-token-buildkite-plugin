@@ -34,6 +34,7 @@ setup() {
 
 teardown() {
   unstub curl
+  unstub buildkite-agent || true  # may not be stubbed in all tests
   rm -rf "${TMPDIR}"
 
   unset BUILDKITE_JOB_ID
@@ -44,6 +45,7 @@ teardown() {
 }
 
 @test "fetches the chinmina token for default profile when no argument is provided" {
+  stub buildkite-agent "redactor add : cat > /dev/null"
   stub curl "echo '{\"profile\": \"default\", \"organisationSlug\": \"org123\", \"token\": \"default-token\", \"expiry\": $(date +%s)}'"
 
   run './bin/chinmina_token'
@@ -55,6 +57,7 @@ teardown() {
 @test "fetches the chinmina token for default profile by using the cached oidc token" {
   local profile="default"
 
+  stub buildkite-agent "redactor add : cat > /dev/null"
   stub curl "echo '{\"profile\": \"default\", \"organisationSlug\": \"org123\", \"token\": \"728282727\", \"expiry\": $(date +%s)}'"
 
   run './bin/chinmina_token' $profile
@@ -71,7 +74,8 @@ teardown() {
   local profile="org:sample-profile"
 
   stub buildkite-agent \
-    "oidc request-token --claim "pipeline_id,cluster_id,cluster_name,queue_id,queue_key" --audience "default" : echo '${oidc_token}'"
+    "oidc request-token --claim "pipeline_id,cluster_id,cluster_name,queue_id,queue_key" --audience "default" : echo '${oidc_token}'" \
+    "redactor add : cat > /dev/null"
 
   stub curl "echo '{\"profile\": \"profile-name\", \"organisationSlug\": \"org123\", \"token\": \"728282727\", \"expiry\": $(date +%s)}'"
 
@@ -79,13 +83,12 @@ teardown() {
 
   assert_success
   assert_output --partial "728282727"
-
-  unstub buildkite-agent
 }
 
 @test "try to fetch the chinmina token for an invalid profile" {
   local profile="org:invalid-profile"
 
+  # redactor won't be called since the request fails before we get a token
   stub curl "echo '{\"error\": \"invalid profile\"}'"
 
   run './bin/chinmina_token' $profile
@@ -97,6 +100,7 @@ teardown() {
 @test "try to fetch the chinmina token for a profile without permissions" {
   local profile="org:unauthorized-profile"
 
+  # redactor won't be called since the token is empty and we fail before redacting
   stub curl "echo '{\"profile\": \"${profile}\", \"organisationSlug\": \"org123\", \"token\": \"\", \"expiry\": $(date +%s)}'"
 
   run './bin/chinmina_token' $profile
@@ -111,10 +115,24 @@ teardown() {
 
   local profile="default"
 
+  stub buildkite-agent "redactor add : cat > /dev/null"
   stub curl "echo '{\"profile\": \"${profile}\", \"organisationSlug\": \"org123\", \"token\": \"728282727\", \"expiry\": $(date +%s)}'"
 
   run './bin/chinmina_token' $profile
 
   assert_success
   assert_output --partial "728282727"
+}
+
+@test "Calls buildkite-agent redactor before outputting token" {
+  local profile="default"
+  local test_token="test-secret-token-123"
+
+  stub buildkite-agent "redactor add : cat > /dev/null"
+  stub curl "echo '{\"profile\": \"${profile}\", \"organisationSlug\": \"org123\", \"token\": \"${test_token}\", \"expiry\": $(date +%s)}'"
+
+  run './bin/chinmina_token' $profile
+
+  assert_success
+  assert_output --partial "$test_token"
 }
