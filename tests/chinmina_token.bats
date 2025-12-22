@@ -135,6 +135,8 @@ teardown() {
 
   assert_success
   assert_output --partial "$test_token"
+
+  unstub buildkite-agent  # Verify redactor was actually called
 }
 
 @test "Extracts plugin version from BUILDKITE_PLUGINS for User-Agent" {
