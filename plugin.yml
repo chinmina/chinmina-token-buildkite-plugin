@@ -7,7 +7,8 @@ description: |
   The helper agent (separate) is accessed via HTTP, using the Buildkite Agent
   OIDC token as its authorization.
 author: https://github.com/chinmina
-requirements: []
+requirements:
+  - jq
 configuration:
   properties:
     chinmina-url:
@@ -22,7 +23,7 @@ configuration:
     environment:
       type: array
       description: |
-        Array of environment variable assignments in the format 'VAR_NAME=profile'.
+        Array of environment variable assignments in the format 'VAR_NAME=org:profile'.
         Each entry exports an environment variable containing a token from the specified profile.
   additionalProperties: false
   required:

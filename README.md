@@ -13,6 +13,10 @@ a GitHub token from Chinmina for the current repository or for an
 > This is fairly straightforward to implement in a custom `bootstrap` agent hook,
 > and an example of this is documented.
 
+## Requirements
+
+- `jq` - Used for parsing plugin configuration and extracting version information
+
 ## Example
 
 Add the following to your `pipeline.yml`:

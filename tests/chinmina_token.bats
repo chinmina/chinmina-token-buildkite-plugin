@@ -136,3 +136,17 @@ teardown() {
   assert_success
   assert_output --partial "$test_token"
 }
+
+@test "Extracts plugin version from BUILDKITE_PLUGINS for User-Agent" {
+  local profile="default"
+  export BUILDKITE_PLUGINS='[{"github.com/chinmina/chinmina-token-buildkite-plugin#v1.1.0":{"audience":"test","chinmina-url":"http://test"}}]'
+
+  stub buildkite-agent "redactor add : cat > /dev/null"
+  stub curl \
+    "--retry 3 --retry-delay 1 --retry-connrefused --silent --show-error --fail --request POST * --data * --header * --header * --header * --header 'User-Agent: chinmina-token-buildkite-plugin/v1.1.0' : echo '{\"profile\": \"${profile}\", \"organisationSlug\": \"org123\", \"token\": \"test-token\", \"expiry\": $(date +%s)}'"
+
+  run './bin/chinmina_token' $profile
+
+  assert_success
+  assert_output --partial "test-token"
+}
