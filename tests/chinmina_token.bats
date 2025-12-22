@@ -2,6 +2,10 @@
 
 load "${BATS_PLUGIN_PATH}/load.bash"
 
+# Load shared test helpers
+# shellcheck source=test_helpers.bash
+source "${BATS_TEST_DIRNAME}/test_helpers.bash"
+
 # Uncomment the following line to debug stub failures
 # export CURL_STUB_DEBUG=/dev/tty
 # export DOCKER_STUB_DEBUG=/dev/tty
@@ -9,11 +13,18 @@ load "${BATS_PLUGIN_PATH}/load.bash"
 setup() {
   # Setting up a default (test) job id for Buildkite
   export BUILDKITE_JOB_ID="7216989073"
+  export TMPDIR="$(mktemp -d)"
+  export BUILDKITE_AGENT_ACCESS_TOKEN="test-agent-token-for-encryption"
   OIDC_TOKEN="example-token"
 
-  #Path to the cache file
-  CACHE_FILE="/tmp/oidc_auth_token_${BUILDKITE_JOB_ID}.cache"
-  echo "$OIDC_TOKEN" > "$CACHE_FILE"
+  # Set up stub bin directory and add openssl stub for encryption
+  setup_stub_bin
+  add_openssl_stub
+
+  # Path to the cache file (new location and naming)
+  CACHE_FILE="${TMPDIR}/chinmina-oidc-${BUILDKITE_JOB_ID}.cache"
+  # Write encrypted cache (using the stub openssl)
+  echo "$OIDC_TOKEN" | base64 > "$CACHE_FILE"
   export CACHE_FILE
 
   # values configured by environment hook
@@ -23,9 +34,11 @@ setup() {
 
 teardown() {
   unstub curl
-  rm -rf $CACHE_FILE
+  rm -rf "${TMPDIR}"
 
   unset BUILDKITE_JOB_ID
+  unset TMPDIR
+  unset BUILDKITE_AGENT_ACCESS_TOKEN
   unset CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL
   unset CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE
 }
@@ -52,7 +65,7 @@ teardown() {
 
 @test "fetches the chinmina token for an org profile without a cached oidc token" {
   # remove cache created in setup
-  rm -rf $CACHE_FILE
+  rm -rf "${CACHE_FILE}"
 
   local oidc_token="sample-token"
   local profile="org:sample-profile"
