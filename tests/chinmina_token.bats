@@ -71,7 +71,7 @@ teardown() {
   local profile="org:sample-profile"
 
   stub buildkite-agent \
-    "oidc request-token --claim pipeline_id --audience "default" : echo '${oidc_token}'"
+    "oidc request-token --claim "pipeline_id,cluster_id,cluster_name,queue_id,queue_key" --audience "default" : echo '${oidc_token}'"
 
   stub curl "echo '{\"profile\": \"profile-name\", \"organisationSlug\": \"org123\", \"token\": \"728282727\", \"expiry\": $(date +%s)}'"
 
