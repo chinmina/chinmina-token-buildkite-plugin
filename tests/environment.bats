@@ -42,28 +42,38 @@ run_environment() {
   assert_line --regexp ":${expected_hooks_dir}\$"
 }
 
-@test "exports single environment variable with profile as interim value" {
+@test "exports single environment variable with token from profile" {
   export BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL="test-chinmina-url"
   export BUILDKITE_PLUGIN_CHINMINA_TOKEN_AUDIENCE="test-audience"
   export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_0="GITHUB_TOKEN_FOO=org:foo"
 
+  stub chinmina_token "org:foo : echo 'stub-token-foo'"
+
   run_environment "$PWD/hooks/environment"
 
   assert_success
-  assert_line 'GITHUB_TOKEN_FOO=org:foo'
+  assert_line 'GITHUB_TOKEN_FOO=stub-token-foo'
+
+  unstub chinmina_token
 }
 
-@test "exports multiple environment variables with profiles as interim values" {
+@test "exports multiple environment variables with tokens from profiles" {
   export BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL="test-chinmina-url"
   export BUILDKITE_PLUGIN_CHINMINA_TOKEN_AUDIENCE="test-audience"
   export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_0="GITHUB_TOKEN_FOO=org:foo"
   export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_1="GITHUB_TOKEN_BAR=org:homebrew-tap"
 
+  stub chinmina_token \
+    "org:foo : echo 'stub-token-foo'" \
+    "org:homebrew-tap : echo 'stub-token-homebrew'"
+
   run_environment "$PWD/hooks/environment"
 
   assert_success
-  assert_line 'GITHUB_TOKEN_FOO=org:foo'
-  assert_line 'GITHUB_TOKEN_BAR=org:homebrew-tap'
+  assert_line 'GITHUB_TOKEN_FOO=stub-token-foo'
+  assert_line 'GITHUB_TOKEN_BAR=stub-token-homebrew'
+
+  unstub chinmina_token
 }
 
 @test "succeeds when environment array is empty or missing" {
@@ -95,4 +105,19 @@ run_environment() {
 
   assert_failure
   assert_output --partial "Empty profile for: 'GITHUB_TOKEN'"
+}
+
+@test "fails when chinmina_token returns error" {
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL="test-chinmina-url"
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_AUDIENCE="test-audience"
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_0="GITHUB_TOKEN_FOO=org:foo"
+
+  stub chinmina_token "* : exit 1"
+
+  run "$PWD/hooks/environment"
+
+  assert_failure
+  assert_output --partial "Token retrieval failed for: 'org:foo'"
+
+  unstub chinmina_token
 }

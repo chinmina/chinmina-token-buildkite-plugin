@@ -69,6 +69,32 @@ tokens will be vended for. `chinmina-bridge`'s GitHub app is configured for a
 particular GitHub organization/user, so if you have multiple organizations,
 multiple agents will need to be running.
 
+### `environment` (array of strings)
+
+Automatically export environment variables containing tokens from specified profiles. Each entry should be in the format `VAR_NAME=profile`.
+
+Example:
+
+```yml
+steps:
+  - plugins:
+      - chinmina/chinmina-token#v1.1.0:
+          chinmina-url: "https://chinmina-bridge-url"
+          audience: "chinmina:your-github-organization"
+          environment:
+            - GITHUB_TOKEN_FOO=org:foo
+            - GITHUB_TOKEN_HOMEBREW=org:homebrew-tap
+```
+
+This is equivalent to calling `chinmina_token` for each profile and exporting the result:
+
+```bash
+export GITHUB_TOKEN_FOO=$(chinmina_token "org:foo")
+export GITHUB_TOKEN_HOMEBREW=$(chinmina_token "org:homebrew-tap")
+```
+
+Tokens are automatically redacted from build logs using `buildkite-agent redactor`.
+
 ## Developing
 
 Run tests and plugin linting locally using `docker compose`:
