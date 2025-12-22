@@ -39,6 +39,7 @@ chinmina_response=$(curl --retry 3 --retry-delay 1 --retry-connrefused \
   --header "Authorization: Bearer ${oidc_auth_token}" \
   --header "Content-Type: text/plain" \
   --header "Accept: application/json" \
+  --header "User-Agent: chinmina-token-buildkite-plugin" \
 )
 
 token_exists="$(echo "$chinmina_response" | jq 'has("token")')"
