@@ -83,6 +83,8 @@ teardown() {
 
   assert_success
   assert_output --partial "728282727"
+
+  unstub buildkite-agent  # Verify OIDC request-token was called
 }
 
 @test "try to fetch the chinmina token for an invalid profile" {
@@ -151,4 +153,7 @@ teardown() {
 
   assert_success
   assert_output --partial "test-token"
+
+  unstub curl  # Verify curl was called with correct User-Agent
+  unstub buildkite-agent
 }
