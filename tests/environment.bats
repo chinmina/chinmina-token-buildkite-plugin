@@ -45,14 +45,14 @@ run_environment() {
 @test "exports single environment variable with token from profile" {
   export BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL="test-chinmina-url"
   export BUILDKITE_PLUGIN_CHINMINA_TOKEN_AUDIENCE="test-audience"
-  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_0="GITHUB_TOKEN_FOO=org:foo"
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_0="GITHUB_FOO_TOKEN=org:foo"
 
   stub chinmina_token "org:foo : echo 'stub-token-foo'"
 
   run_environment "$PWD/hooks/environment"
 
   assert_success
-  assert_line 'GITHUB_TOKEN_FOO=stub-token-foo'
+  assert_line 'GITHUB_FOO_TOKEN=stub-token-foo'
 
   unstub chinmina_token
 }
@@ -60,8 +60,8 @@ run_environment() {
 @test "exports multiple environment variables with tokens from profiles" {
   export BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL="test-chinmina-url"
   export BUILDKITE_PLUGIN_CHINMINA_TOKEN_AUDIENCE="test-audience"
-  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_0="GITHUB_TOKEN_FOO=org:foo"
-  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_1="GITHUB_TOKEN_BAR=org:homebrew-tap"
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_0="GITHUB_FOO_TOKEN=org:foo"
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_1="GITHUB_BAR_TOKEN=org:homebrew-tap"
 
   stub chinmina_token \
     "org:foo : echo 'stub-token-foo'" \
@@ -70,8 +70,8 @@ run_environment() {
   run_environment "$PWD/hooks/environment"
 
   assert_success
-  assert_line 'GITHUB_TOKEN_FOO=stub-token-foo'
-  assert_line 'GITHUB_TOKEN_BAR=stub-token-homebrew'
+  assert_line 'GITHUB_FOO_TOKEN=stub-token-foo'
+  assert_line 'GITHUB_BAR_TOKEN=stub-token-homebrew'
 
   unstub chinmina_token
 }
@@ -110,7 +110,7 @@ run_environment() {
 @test "fails when chinmina_token returns error" {
   export BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL="test-chinmina-url"
   export BUILDKITE_PLUGIN_CHINMINA_TOKEN_AUDIENCE="test-audience"
-  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_0="GITHUB_TOKEN_FOO=org:foo"
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_0="GITHUB_FOO_TOKEN=org:foo"
 
   stub chinmina_token "* : exit 1"
 

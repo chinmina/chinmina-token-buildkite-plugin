@@ -42,7 +42,7 @@ steps:
   - label: "Build with private dependencies"
     command: |
       # Multiple tokens available for different purposes
-      npm config set //npm.pkg.github.com/:_authToken "$GITHUB_TOKEN_NPM"
+      npm config set //npm.pkg.github.com/:_authToken "$GITHUB_NPM_TOKEN"
       npm install
 
       # Deploy using different token
@@ -53,7 +53,7 @@ steps:
           audience: "chinmina:your-github-organization"
           environment:
             - GITHUB_TOKEN=repo:default
-            - GITHUB_TOKEN_NPM=org:npm-packages
+            - GITHUB_NPM_TOKEN=org:npm-packages
 ```
 
 Tokens are automatically redacted from build logs.
@@ -137,16 +137,16 @@ Each entry uses the format `VAR_NAME=profile`.
 ```yml
 environment:
   - GITHUB_TOKEN=repo:default
-  - GITHUB_TOKEN_NPM=org:npm-packages
-  - GITHUB_TOKEN_HOMEBREW=org:homebrew-tap
+  - GITHUB_NPM_TOKEN=org:npm-packages
+  - GITHUB_HOMEBREW_TOKEN=org:homebrew-tap
 ```
 
 **Equivalent manual approach:**
 
 ```bash
 export GITHUB_TOKEN=$(chinmina_token "repo:default")
-export GITHUB_TOKEN_NPM=$(chinmina_token "org:npm-packages")
-export GITHUB_TOKEN_HOMEBREW=$(chinmina_token "org:homebrew-tap")
+export GITHUB_NPM_TOKEN=$(chinmina_token "org:npm-packages")
+export GITHUB_HOMEBREW_TOKEN=$(chinmina_token "org:homebrew-tap")
 ```
 
 **Features:**
