@@ -23,15 +23,15 @@ if ! oidc_auth_token="$(cache_read "${BUILDKITE_JOB_ID}")"; then
   cache_write "${BUILDKITE_JOB_ID}" "${oidc_auth_token}"
 fi
 
-if [[ ${profile_name} == "default" || ${profile_name} == "repo:default" ]]; then
-  path="token"
+if [[ "${profile_name}" == repo:* ]]; then
+  request_path="token"
 else
-  path="organization/token/${profile_name}"
+  request_path="organization/token/${profile_name}"
 fi
 
 # POST request to fetch token from Github App
 chinmina_response=$(curl --silent --show-error --fail \
-  --request POST "${url}/${path}" \
+  --request POST "${url}/${request_path}" \
   --data "" \
   --header "Authorization: Bearer ${oidc_auth_token}" \
   --header "Content-Type: text/plain" \
