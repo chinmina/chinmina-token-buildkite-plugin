@@ -20,7 +20,7 @@ Add the following to your `pipeline.yml`:
 ```yml
 steps:
   - plugins:
-      - chinmina/chinmina-token#v1.0.0:
+      - chinmina/chinmina-token#v1.1.0:
           chinmina-url: "https://chinmina-bridge-url"
           audience: "chinmina:your-github-organization"
 ```
@@ -29,8 +29,11 @@ To get a GitHub token, then fetch a private GitHub release
 asset, usage would be the following:
 
 ```bash
-# use the helper function to get a token
+# use the helper function to get a token for an organization profile
 export GITHUB_TOKEN=$(chinmina_token "org:profile-name")
+
+# or get a token for the repository profile
+export GITHUB_TOKEN=$(chinmina_token "repo:default")
 
 # The GH CLI will use GITHUB_TOKEN as its authorization for any API requests:
 
