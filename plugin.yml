@@ -1,8 +1,12 @@
 name: Chinmina Token
 description: |
-  Adds a `chinmina_token` script to the `PATH`, allowing agent scripts to retrieve
-  a GitHub token from Chinmina for the current repository or for an
-  organizational profile.
+  Provides GitHub token retrieval from Chinmina in two modes:
+
+  **Library Mode** (no `environment` parameter): Adds `chinmina_token` script to
+  PATH for manual token retrieval in agent scripts.
+
+  **Environment Mode** (`environment` parameter present): Automatically exports
+  tokens to specified environment variables.
 
   The helper agent (separate) is accessed via HTTP, using the Buildkite Agent
   OIDC token as its authorization.
@@ -13,18 +17,21 @@ configuration:
   properties:
     chinmina-url:
       type: string
-      description: The URL of the Chinmina Bridge agent that creates a token for a pipeline.
+      description: |
+        The URL of the Chinmina Bridge agent that creates a token for a pipeline.
+        Required unless set by agent infrastructure via CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL.
     audience:
       type: string
       description: |
-        (Default `chinmina:default`) The audience to use for the Buildkite OIDC
-        JWT that is sent to the vendor agent. Must match the setting in the
-        vendor agent.
+        (Default: `chinmina:default`) The audience to use for the Buildkite OIDC
+        JWT that is sent to the vendor agent. Falls back to agent environment
+        CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE if not provided. Must match the
+        setting in the vendor agent.
     environment:
       type: array
       description: |
         Array of environment variable assignments in the format 'VAR_NAME=org:profile'.
         Each entry exports an environment variable containing a token from the specified profile.
+        When this parameter is present, the plugin operates in Environment Mode (PATH is not modified).
   additionalProperties: false
-  required:
-    - chinmina-url
+  required: []

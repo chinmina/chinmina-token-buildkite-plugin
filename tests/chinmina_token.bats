@@ -157,3 +157,96 @@ teardown() {
   unstub curl  # Verify curl was called with correct User-Agent
   unstub buildkite-agent
 }
+
+@test "accepts URL and audience via positional arguments" {
+  local profile="default"
+  local url="http://positional-url"
+  local audience="positional-audience"
+
+  stub buildkite-agent \
+    "oidc request-token --claim \"pipeline_id,cluster_id,cluster_name,queue_id,queue_key\" --audience \"${audience}\" : echo 'positional-oidc-token'" \
+    "redactor add : cat > /dev/null"
+
+  stub curl "echo '{\"profile\": \"${profile}\", \"organisationSlug\": \"org123\", \"token\": \"positional-token\", \"expiry\": $(date +%s)}'"
+
+  # Clear cache to force new OIDC request
+  rm -rf "${CACHE_FILE}"
+
+  # Call with positional arguments: <profile> <url> <audience>
+  run './bin/chinmina_token' "$profile" "$url" "$audience"
+
+  assert_success
+  assert_output --partial "positional-token"
+
+  unstub buildkite-agent
+}
+
+@test "positional arguments override environment variables" {
+  # Set env vars
+  export CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL="http://env-url"
+  export CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE="env-audience"
+
+  local profile="default"
+  local url="http://override-url"
+  local audience="override-audience"
+
+  stub buildkite-agent \
+    "oidc request-token --claim \"pipeline_id,cluster_id,cluster_name,queue_id,queue_key\" --audience \"${audience}\" : echo 'override-oidc-token'" \
+    "redactor add : cat > /dev/null"
+
+  # Profile "default" routes to "organization/token/default", not "token"
+  stub curl "echo '{\"profile\": \"${profile}\", \"organisationSlug\": \"org123\", \"token\": \"override-token\", \"expiry\": $(date +%s)}'"
+
+  # Clear cache to force new OIDC request
+  rm -rf "${CACHE_FILE}"
+
+  # Positional args should override env vars
+  run './bin/chinmina_token' "$profile" "$url" "$audience"
+
+  assert_success
+  assert_output --partial "override-token"
+
+  unstub buildkite-agent
+}
+
+@test "fails when URL not provided via argument or environment" {
+  # Clear env vars
+  unset CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL
+  unset CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE
+
+  local profile="default"
+
+  # No stubs needed as it should fail before making any calls
+
+  run './bin/chinmina_token' "$profile"
+
+  assert_failure
+  assert_output --partial "Error: chinmina-url not provided in environment or as an argument"
+}
+
+@test "uses default audience when not provided" {
+  # Unset env vars from setup() so we test the built-in default
+  unset CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL
+  unset CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE
+
+  local profile="default"
+  local url="http://test-url"
+  # audience intentionally not provided - should default to "chinmina:default"
+
+  stub buildkite-agent \
+    "oidc request-token --claim \"pipeline_id,cluster_id,cluster_name,queue_id,queue_key\" --audience \"chinmina:default\" : echo 'default-audience-oidc-token'" \
+    "redactor add : cat > /dev/null"
+
+  stub curl "echo '{\"profile\": \"${profile}\", \"organisationSlug\": \"org123\", \"token\": \"default-audience-token\", \"expiry\": $(date +%s)}'"
+
+  # Clear cache to force new OIDC request
+  rm -rf "${CACHE_FILE}"
+
+  # Call with only profile and url - audience should default
+  run './bin/chinmina_token' "$profile" "$url"
+
+  assert_success
+  assert_output --partial "default-audience-token"
+
+  unstub buildkite-agent
+}
