@@ -33,7 +33,7 @@ steps:
       # GITHUB_TOKEN is automatically available
       gh release download --repo myorg/myrepo --pattern "*.zip"
     plugins:
-      - chinmina/chinmina-token#v1.1.0:
+      - chinmina/chinmina-token#v1.2.0:
           chinmina-url: "https://chinmina-bridge-url"
           audience: "chinmina:your-github-organization"
           environment:
@@ -68,7 +68,7 @@ steps:
       # GITHUB_TOKEN is automatically available
       gh release download --repo myorg/myrepo --pattern "*.zip"
     plugins:
-      - chinmina/chinmina-token#v1.1.0:
+      - chinmina/chinmina-token#v1.2.0:
           environment:
             - GITHUB_TOKEN=repo:default
 ```
@@ -90,7 +90,7 @@ steps:
       # Deploy using different token
       gh release create --repo myorg/releases "$VERSION"
     plugins:
-      - chinmina/chinmina-token#v1.1.0:
+      - chinmina/chinmina-token#v1.2.0:
           chinmina-url: "https://chinmina-bridge-url"
           audience: "chinmina:your-github-organization"
           environment:
@@ -106,7 +106,7 @@ For dynamic token selection or complex scripting scenarios, use the
 ```yml
 steps:
   - plugins:
-      - chinmina/chinmina-token#v1.1.0:
+      - chinmina/chinmina-token#v1.2.0:
           chinmina-url: "https://chinmina-bridge-url"
           audience: "chinmina:your-github-organization"
 ```
