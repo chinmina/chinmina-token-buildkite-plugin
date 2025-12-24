@@ -42,6 +42,8 @@ requested_environment_profiles="$(plugin_read_list BUILDKITE_PLUGIN_CHINMINA_TOK
 # later usage in scripts.
 #
 if [[ -n "$requested_environment_profiles" ]]; then
+  echo "~~~ :chinmina: Requesting GitHub tokens via Chinmina"
+
   # Environment mode: process array and export tokens
   # Does NOT modify PATH - calls chinmina_token by full path
   while IFS='=' read -r var_name profile; do
@@ -66,6 +68,8 @@ if [[ -n "$requested_environment_profiles" ]]; then
       echo "Token retrieval failed for: '$profile'" >&2
       exit 1
     fi
+
+    echo "- '$var_name' ← '$profile' profile token"
     export "${var_name}=${token}"
   done <<<"${requested_environment_profiles}"
 else
