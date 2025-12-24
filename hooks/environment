@@ -2,15 +2,79 @@
 
 set -ueo pipefail
 
-# Add parameters to the environment so they're available to the chinmina_token helper script
-# This means that the plugin can't really be defined twice in step/agent hook, as the values
-# defined here will be overwritten by each successive hook execution (i.e. last one wins).
+# Helper function to read array parameters
+plugin_read_list() {
+  local prefix="$1"
+  local i=0
+  local parameter="${prefix}_${i}"
+
+  while [[ -n "${!parameter:-}" ]]; do
+    echo "${!parameter}"
+    i=$((i+1))
+    parameter="${prefix}_${i}"
+  done
+}
+
+# Configuration resolution with fallback hierarchy:
+# 1. Plugin configuration (BUILDKITE_PLUGIN_CHINMINA_TOKEN_*)
+# 2. Agent-set defaults (CHINMINA_TOKEN_LIBRARY_FUNCTION_*)
+# 3. Built-in default (audience only: "chinmina:default")
+url="${BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL:-${CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL:-}}"
+audience="${BUILDKITE_PLUGIN_CHINMINA_TOKEN_AUDIENCE:-${CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE:-chinmina:default}}"
+
+# Validate required configuration
+if [[ -z "$url" ]]; then
+  echo "chinmina-url is required (via plugin parameter or agent environment)" >&2
+  exit 1
+fi
+
+hooks_dir="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
+library_function_path="$hooks_dir/../bin"
+
+# read the set of requested environment profiles from the plugin parameters
+requested_environment_profiles="$(plugin_read_list BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT)"
+
 #
-# This plugin is designed to be used in the "environment" agent hook, so there's no real desire
-# to have multiple versions sets of parameter values.
-export CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL="${BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL?chinmina-url parameter is required}"
-export CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE="${BUILDKITE_PLUGIN_CHINMINA_TOKEN_AUDIENCE?audience parameter is required}"
+# If the `environment` plugin parameter is set, we'll add the requested profile
+# tokens to the environment.
+#
+# Otherwise, we'll add the `chinmina_token` library function to the PATH for
+# later usage in scripts.
+#
+if [[ -n "$requested_environment_profiles" ]]; then
+  echo "~~~ :chinmina: Requesting GitHub tokens via Chinmina"
 
-HOOKS_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
+  # Environment mode: process array and export tokens
+  # Does NOT modify PATH - calls chinmina_token by full path
+  while IFS='=' read -r var_name profile; do
+    if [[ ! "$var_name" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+      echo "Invalid variable name: '$var_name'" >&2
+      exit 1
+    fi
 
-export PATH="$PATH:$HOOKS_DIR/../bin"
+    if [[ -z "$profile" ]]; then
+      echo "Empty profile for: '$var_name'" >&2
+      exit 1
+    fi
+
+    library_function="$library_function_path/chinmina_token"
+    if [[ "${TEST_USE_STUBS:-}" == "true" ]]; then
+      # bare use in test mode to allow stubbing
+      library_function="chinmina_token"
+    fi
+
+    # Pass configuration via positional arguments
+    if ! token="$("$library_function" "$profile" "$url" "$audience")"; then
+      echo "Token retrieval failed for: '$profile'" >&2
+      exit 1
+    fi
+
+    echo "- '$var_name' ← '$profile' profile token"
+    export "${var_name}=${token}"
+  done <<<"${requested_environment_profiles}"
+else
+  # Library mode: export configuration and add to PATH for manual usage
+  export CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL="${url}"
+  export CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE="${audience}"
+  export PATH="${PATH}:${library_function_path}"
+fi

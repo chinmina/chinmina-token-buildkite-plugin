@@ -1,21 +1,107 @@
 # chinmina-token-buildkite-plugin
 
-Adds a `chinimina_token` script to the `PATH`, allowing agent scripts to retrieve
-a GitHub token from Chinmina for the current repository or for an
-[organizational profile][organization-profiles].
+A Buildkite plugin for retrieving GitHub tokens from Chinmina for the current
+repository or [organizational profiles][organization-profiles]. Tokens can be
+automatically exported as environment variables or retrieved programmatically
+via the `chinmina_token` helper script.
 
 > [!NOTE]
 > Refer to the [Chinmina documentation][chinmina-integration] for detailed
 > information about configuring and using this plugin effectively.
 >
-> While this plugin can be used as a regular Buildkite plugin, it may be more
-> useful if the agent configuration is adjusted to include it on all steps.
-> This is fairly straightforward to implement in a custom `bootstrap` agent hook,
-> and an example of this is documented.
+> The documentation recommends configuring the token plugin at the agent level,
+> so the `chinmina_token` function is available to all scripts, and the default
+> configuration for the current plugin environment is configured.
+>
+> When the plugin is installed at the agent level, the `environment` parameter
+> is all that needs to be supplied.
 
-## Example
+## Requirements
 
-Add the following to your `pipeline.yml`:
+- `jq` - Used for parsing plugin configuration and extracting version
+  information
+
+## Getting Started
+
+The simplest way to use this plugin is to declare the tokens you need as
+environment variables:
+
+```yml
+steps:
+  - label: "Deploy to production"
+    command: |
+      # GITHUB_TOKEN is automatically available
+      gh release download --repo myorg/myrepo --pattern "*.zip"
+    plugins:
+      - chinmina/chinmina-token#v1.1.0:
+          chinmina-url: "https://chinmina-bridge-url"
+          audience: "chinmina:your-github-organization"
+          environment:
+            - GITHUB_TOKEN=repo:default
+```
+
+> [!TIP]
+> All tokens retrieved from Chinmina Bridge are automatically redacted from
+> build logs.
+
+### Agent configuration
+
+If you install the plugin on the agent by default (in the bootstrap of the
+Elastic Stack, for example), you can default the configuration for all
+pipelines.
+
+Add the following to the agent `environment` hook:
+
+```shell
+BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL="${BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL:-https://chinmina-bridge.example.com}" \
+  BUILDKITE_PLUGIN_CHINMINA_TOKEN_AUDIENCE="${BUILDKITE_PLUGIN_CHINMINA_TOKEN_AUDIENCE:-chinmina:your-organization}" \
+    source /buildkite/plugins/chinmina-token-buildkite-plugin/hooks/environment
+```
+
+Then in your pipeline you can set the environment without specifying the URL and
+audience again.
+
+```yml
+steps:
+  - label: "Deploy to production"
+    command: |
+      # GITHUB_TOKEN is automatically available
+      gh release download --repo myorg/myrepo --pattern "*.zip"
+    plugins:
+      - chinmina/chinmina-token#v1.1.0:
+          environment:
+            - GITHUB_TOKEN=repo:default
+```
+
+
+### Multiple Tokens
+
+For workflows requiring multiple tokens (e.g., accessing different organizations
+or profiles):
+
+```yml
+steps:
+  - label: "Build with private dependencies"
+    command: |
+      # Multiple tokens available for different purposes
+      npm config set //npm.pkg.github.com/:_authToken "$GITHUB_NPM_TOKEN"
+      npm install
+
+      # Deploy using different token
+      gh release create --repo myorg/releases "$VERSION"
+    plugins:
+      - chinmina/chinmina-token#v1.1.0:
+          chinmina-url: "https://chinmina-bridge-url"
+          audience: "chinmina:your-github-organization"
+          environment:
+            - GITHUB_TOKEN=repo:default
+            - GITHUB_NPM_TOKEN=org:npm-packages
+```
+
+## Advanced Usage
+
+For dynamic token selection or complex scripting scenarios, use the
+`chinmina_token` helper script directly:
 
 ```yml
 steps:
@@ -25,27 +111,35 @@ steps:
           audience: "chinmina:your-github-organization"
 ```
 
-To get a GitHub token, then fetch a private GitHub release
-asset, usage would be the following:
+Then in your scripts:
 
 ```bash
-# use the helper function to get a token for an organization profile
-export GITHUB_TOKEN=$(chinmina_token "org:profile-name")
+# Dynamically select profile based on environment
+if [[ "$ENVIRONMENT" == "production" ]]; then
+  export GITHUB_TOKEN=$(chinmina_token "org:prod-profile")
+else
+  export GITHUB_TOKEN=$(chinmina_token "org:staging-profile")
+fi
 
-# or get a token for the repository profile
+# Or get a token for the repository
 export GITHUB_TOKEN=$(chinmina_token "repo:default")
 
-# The GH CLI will use GITHUB_TOKEN as its authorization for any API requests:
-
-# ... show this to the console
-gh auth status
-
-# ... download a release from a private repo
-gh releases download --repo "${repo}" \
-  --pattern "release-file=${arch}.zip" \
+# Use with gh CLI
+gh release download --repo "${repo}" \
+  --pattern "release-file-${arch}.zip" \
   --dir "${directory}" \
   "${tag}"
 ```
+
+### When to Use Each Approach
+
+| Use Case | Recommended Approach |
+|----------|---------------------|
+| Static token needs known upfront | `environment` array (declarative) |
+| Multiple tokens for different services | `environment` array |
+| Dynamic profile selection | `chinmina_token` script |
+| Conditional token logic | `chinmina_token` script |
+| Token needed only in specific conditions | `chinmina_token` script |
 
 ## Configuration
 
@@ -63,11 +157,44 @@ The value of the `aud` claim of the OIDC JWT that will be sent to
 [`chinmina-bridge`][chinmina-bridge]. This must correlate with the value
 configured in the `chinmina-bridge` settings.
 
-A recommendation: `chinmina:your-github-organization`. This is specific
-to the purpose of the token, and also scoped to the GitHub organization that
-tokens will be vended for. `chinmina-bridge`'s GitHub app is configured for a
-particular GitHub organization/user, so if you have multiple organizations,
-multiple agents will need to be running.
+**Recommendation:** `chinmina:your-github-organization`
+
+This value should be specific to the purpose of the token and scoped to the
+GitHub organization that tokens will be vended for. Since `chinmina-bridge`'s
+GitHub app is configured for a particular GitHub organization/user, multiple
+agents are needed for multiple organizations.
+
+### `environment` (array of strings)
+
+Automatically export environment variables containing tokens from specified
+profiles. Each entry uses the format `VAR_NAME=profile`.
+
+#### Profile formats
+
+- `repo:default` - Token for the current repository
+- `org:profile-name` - Token for an organizational profile
+
+#### Example
+
+```yml
+environment:
+  - GITHUB_TOKEN=repo:default
+  - GITHUB_NPM_TOKEN=org:npm-packages
+  - GITHUB_HOMEBREW_TOKEN=org:homebrew-tap
+```
+
+**Equivalent manual approach:**
+
+```bash
+export GITHUB_TOKEN=$(chinmina_token "repo:default")
+export GITHUB_NPM_TOKEN=$(chinmina_token "org:npm-packages")
+export GITHUB_HOMEBREW_TOKEN=$(chinmina_token "org:homebrew-tap")
+```
+
+#### Features
+- Tokens are automatically redacted from build logs
+- Fails fast if any token retrieval fails
+- Validates environment variable names and profile values
 
 ## Developing
 
@@ -79,6 +206,9 @@ docker compose run --rm lint
 
 # Bash tests
 docker compose run --rm tests
+
+# Specific test file
+docker compose run --rm tests tests/chinmina_token.bats
 ```
 
 ## Contributing
