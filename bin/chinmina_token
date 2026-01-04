@@ -52,12 +52,6 @@ else
   request_path="organization/token/${profile_name}"
 fi
 
-plugin_version=$(echo "${BUILDKITE_PLUGINS:-}" | jq -r '
-  [.[] | keys[0] | select(startswith("github.com/chinmina/chinmina-token-buildkite-plugin#")) | split("#")[1]]
-  | first
-  // "v.unknown"
-')
-
 # POST request to fetch token from Github App
 chinmina_response=$(curl --retry 3 --retry-delay 1 --retry-connrefused \
   --silent --show-error --fail \
@@ -66,7 +60,6 @@ chinmina_response=$(curl --retry 3 --retry-delay 1 --retry-connrefused \
   --header "Authorization: Bearer ${oidc_auth_token}" \
   --header "Content-Type: text/plain" \
   --header "Accept: application/json" \
-  --header "User-Agent: chinmina-token-buildkite-plugin/${plugin_version}" \
 )
 
 token_exists="$(echo "$chinmina_response" | jq 'has("token")')"
