@@ -282,3 +282,11 @@ teardown() {
   assert_output --partial "Error: invalid profile name 'bad/name'"
   assert_output --partial "Must contain only alphanumeric"
 }
+
+@test "fails when profile has unrecognized prefix" {
+  run './bin/chinmina_token' "unknown:profile"
+
+  assert_failure
+  assert_output --partial "Error: unrecognized profile prefix 'unknown'"
+  assert_output --partial "Use 'pipeline:' or 'org:'"
+}

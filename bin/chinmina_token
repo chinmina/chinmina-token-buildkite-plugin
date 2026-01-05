@@ -64,14 +64,23 @@ if ! oidc_auth_token="$(cache_read "${BUILDKITE_JOB_ID}")"; then
   cache_write "${BUILDKITE_JOB_ID}" "${oidc_auth_token}"
 fi
 
-if [[ "${requested_profile}" == pipeline:* ]]; then
-  request_path="token"
-elif [[ "${requested_profile}" == repo:* ]]; then
-  echo -e "\033[33mWarning: 'repo:' prefix is deprecated. Use 'pipeline:' instead. This will be removed in the next major version.\033[0m" >&2
-  request_path="token"
-else
-  request_path="organization/token/${requested_profile}"
-fi
+# Determine request path based on prefix
+case "${profile_prefix}" in
+  pipeline)
+    request_path="token"
+    ;;
+  repo)
+    echo -e "\033[33mWarning: 'repo:' prefix is deprecated. Use 'pipeline:' instead. This will be removed in the next major version.\033[0m" >&2
+    request_path="token"
+    ;;
+  org)
+    request_path="organization/token/${requested_profile}"
+    ;;
+  *)
+    echo "Error: unrecognized profile prefix '${profile_prefix}'. Use 'pipeline:' or 'org:'." >&2
+    exit 1
+    ;;
+esac
 
 # POST request to fetch token from Github App
 chinmina_response=$(curl --retry 3 --retry-delay 1 --retry-connrefused \
