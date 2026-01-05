@@ -55,7 +55,7 @@ teardown() {
 }
 
 @test "fetches the chinmina token for default profile by using the cached oidc token" {
-  local profile="default"
+  local profile="org:default"
 
   stub buildkite-agent "redactor add : cat > /dev/null"
   stub curl "echo '{\"profile\": \"default\", \"organisationSlug\": \"org123\", \"token\": \"728282727\", \"expiry\": $(date +%s)}'"
@@ -115,10 +115,10 @@ teardown() {
   export CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL=http://test-location
   export CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE=default
 
-  local profile="default"
+  local profile="org:default"
 
   stub buildkite-agent "redactor add : cat > /dev/null"
-  stub curl "echo '{\"profile\": \"${profile}\", \"organisationSlug\": \"org123\", \"token\": \"728282727\", \"expiry\": $(date +%s)}'"
+  stub curl "echo '{\"profile\": \"default\", \"organisationSlug\": \"org123\", \"token\": \"728282727\", \"expiry\": $(date +%s)}'"
 
   run './bin/chinmina_token' $profile
 
@@ -127,11 +127,11 @@ teardown() {
 }
 
 @test "Calls buildkite-agent redactor before outputting token" {
-  local profile="default"
+  local profile="org:default"
   local test_token="test-secret-token-123"
 
   stub buildkite-agent "redactor add : cat > /dev/null"
-  stub curl "echo '{\"profile\": \"${profile}\", \"organisationSlug\": \"org123\", \"token\": \"${test_token}\", \"expiry\": $(date +%s)}'"
+  stub curl "echo '{\"profile\": \"default\", \"organisationSlug\": \"org123\", \"token\": \"${test_token}\", \"expiry\": $(date +%s)}'"
 
   run './bin/chinmina_token' $profile
 
@@ -142,7 +142,7 @@ teardown() {
 }
 
 @test "accepts URL and audience via positional arguments" {
-  local profile="default"
+  local profile="org:default"
   local url="http://positional-url"
   local audience="positional-audience"
 
@@ -150,7 +150,7 @@ teardown() {
     "oidc request-token --claim \"pipeline_id,cluster_id,cluster_name,queue_id,queue_key\" --audience \"${audience}\" : echo 'positional-oidc-token'" \
     "redactor add : cat > /dev/null"
 
-  stub curl "echo '{\"profile\": \"${profile}\", \"organisationSlug\": \"org123\", \"token\": \"positional-token\", \"expiry\": $(date +%s)}'"
+  stub curl "echo '{\"profile\": \"default\", \"organisationSlug\": \"org123\", \"token\": \"positional-token\", \"expiry\": $(date +%s)}'"
 
   # Clear cache to force new OIDC request
   rm -rf "${CACHE_FILE}"
@@ -169,7 +169,7 @@ teardown() {
   export CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL="http://env-url"
   export CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE="env-audience"
 
-  local profile="default"
+  local profile="org:default"
   local url="http://override-url"
   local audience="override-audience"
 
@@ -177,8 +177,8 @@ teardown() {
     "oidc request-token --claim \"pipeline_id,cluster_id,cluster_name,queue_id,queue_key\" --audience \"${audience}\" : echo 'override-oidc-token'" \
     "redactor add : cat > /dev/null"
 
-  # Profile "default" routes to "organization/token/default", not "token"
-  stub curl "echo '{\"profile\": \"${profile}\", \"organisationSlug\": \"org123\", \"token\": \"override-token\", \"expiry\": $(date +%s)}'"
+  # Profile "org:default" routes to "organization/token/default"
+  stub curl "echo '{\"profile\": \"default\", \"organisationSlug\": \"org123\", \"token\": \"override-token\", \"expiry\": $(date +%s)}'"
 
   # Clear cache to force new OIDC request
   rm -rf "${CACHE_FILE}"
@@ -197,7 +197,7 @@ teardown() {
   unset CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL
   unset CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE
 
-  local profile="default"
+  local profile="org:default"
 
   # No stubs needed as it should fail before making any calls
 
@@ -212,7 +212,7 @@ teardown() {
   unset CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL
   unset CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE
 
-  local profile="default"
+  local profile="org:default"
   local url="http://test-url"
   # audience intentionally not provided - should default to "chinmina:default"
 
@@ -220,7 +220,7 @@ teardown() {
     "oidc request-token --claim \"pipeline_id,cluster_id,cluster_name,queue_id,queue_key\" --audience \"chinmina:default\" : echo 'default-audience-oidc-token'" \
     "redactor add : cat > /dev/null"
 
-  stub curl "echo '{\"profile\": \"${profile}\", \"organisationSlug\": \"org123\", \"token\": \"default-audience-token\", \"expiry\": $(date +%s)}'"
+  stub curl "echo '{\"profile\": \"default\", \"organisationSlug\": \"org123\", \"token\": \"default-audience-token\", \"expiry\": $(date +%s)}'"
 
   # Clear cache to force new OIDC request
   rm -rf "${CACHE_FILE}"
@@ -265,4 +265,28 @@ teardown() {
   assert_success
   # Should NOT emit deprecation warning (since default is now pipeline:default)
   refute_output --partial "deprecated"
+}
+
+@test "fails when profile has no colon separator" {
+  run './bin/chinmina_token' "invalid-profile"
+
+  assert_failure
+  assert_output --partial "Error: invalid profile format 'invalid-profile'"
+  assert_output --partial "Must be 'prefix:name'"
+}
+
+@test "fails when profile name contains invalid characters" {
+  run './bin/chinmina_token' "pipeline:bad/name"
+
+  assert_failure
+  assert_output --partial "Error: invalid profile name 'bad/name'"
+  assert_output --partial "Must contain only alphanumeric"
+}
+
+@test "fails when profile has unrecognized prefix" {
+  run './bin/chinmina_token' "unknown:profile"
+
+  assert_failure
+  assert_output --partial "Error: unrecognized profile prefix 'unknown'"
+  assert_output --partial "Use 'pipeline:' or 'org:'"
 }

@@ -49,12 +49,16 @@ The plugin follows Buildkite's standard plugin hook structure:
 2. Checks for cached OIDC token (valid for 5 minutes) and attempts decryption
 3. If cache miss or decryption fails, requests new OIDC token from Buildkite Agent using configured audience
 4. Encrypts and caches the new OIDC token using OpenSSL (AES-256-CBC with BUILDKITE_AGENT_ACCESS_TOKEN as passphrase)
-5. Determines API path based on profile:
-   - Profiles starting with `pipeline:` (or deprecated `repo:`) → `/token`
-   - All other profiles → `/organization/token/{profile_name}`
-6. POSTs to Chinmina Bridge with OIDC token as Bearer authorization
-7. Validates response contains non-empty token field
-8. Outputs token to stdout
+5. Extracts prefix and profile name from requested profile using parameter expansion
+6. Validates profile format and characters
+7. Determines API path based on prefix (with prefix stripped from URL):
+   - `pipeline:` prefix → `/token/{profile_name}`
+   - `repo:` prefix (deprecated) → `/token/{profile_name}` with warning
+   - `org:` prefix → `/organization/token/{profile_name}`
+   - Unrecognized prefix → error
+8. POSTs to Chinmina Bridge with OIDC token as Bearer authorization
+9. Validates response contains non-empty token field
+10. Outputs token to stdout
 
 ### Configuration Propagation
 

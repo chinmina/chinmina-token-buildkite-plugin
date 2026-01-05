@@ -17,9 +17,27 @@ script_dir=$(dirname "${BASH_SOURCE[0]}")
 #
 # Usage: chinmina_token <profile> [url] [audience]
 #
-profile_name=${1:-"pipeline:default"}
+requested_profile=${1:-"pipeline:default"}
 url="${2:-${CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL:-}}"
 audience="${3:-${CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE:-chinmina:default}}"
+
+# Extract prefix and profile name using parameter expansion
+# ${var%%:*} = part before first colon (prefix)
+# ${var#*:} = part after first colon (profile name)
+profile_prefix="${requested_profile%%:*}"
+profile_name="${requested_profile#*:}"
+
+# Validate profile format (must have colon separator)
+if [[ "${profile_prefix}" == "${profile_name}" ]]; then
+  echo "Error: invalid profile format '${requested_profile}'. Must be 'prefix:name' (e.g., 'pipeline:default', 'org:my-profile')." >&2
+  exit 1
+fi
+
+# Validate profile name contains only allowed characters
+if [[ ! "${profile_name}" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+  echo "Error: invalid profile name '${profile_name}'. Must contain only alphanumeric characters, underscores, and hyphens." >&2
+  exit 1
+fi
 
 # Validate required parameters
 if [[ -z "$url" ]]; then
@@ -46,14 +64,23 @@ if ! oidc_auth_token="$(cache_read "${BUILDKITE_JOB_ID}")"; then
   cache_write "${BUILDKITE_JOB_ID}" "${oidc_auth_token}"
 fi
 
-if [[ "${profile_name}" == pipeline:* ]]; then
-  request_path="token"
-elif [[ "${profile_name}" == repo:* ]]; then
-  echo -e "\033[33mWarning: 'repo:' prefix is deprecated. Use 'pipeline:' instead. This will be removed in the next major version.\033[0m" >&2
-  request_path="token"
-else
-  request_path="organization/token/${profile_name}"
-fi
+# Determine request path based on prefix
+case "${profile_prefix}" in
+  pipeline)
+    request_path="token/${profile_name}"
+    ;;
+  repo)
+    echo -e "\033[33mWarning: 'repo:' prefix is deprecated. Use 'pipeline:' instead. This will be removed in the next major version.\033[0m" >&2
+    request_path="token/${profile_name}"
+    ;;
+  org)
+    request_path="organization/token/${profile_name}"
+    ;;
+  *)
+    echo "Error: unrecognized profile prefix '${profile_prefix}'. Use 'pipeline:' or 'org:'." >&2
+    exit 1
+    ;;
+esac
 
 # POST request to fetch token from Github App
 chinmina_response=$(curl --retry 3 --retry-delay 1 --retry-connrefused \
