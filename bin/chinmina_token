@@ -67,14 +67,14 @@ fi
 # Determine request path based on prefix
 case "${profile_prefix}" in
   pipeline)
-    request_path="token"
+    request_path="token/${profile_name}"
     ;;
   repo)
     echo -e "\033[33mWarning: 'repo:' prefix is deprecated. Use 'pipeline:' instead. This will be removed in the next major version.\033[0m" >&2
-    request_path="token"
+    request_path="token/${profile_name}"
     ;;
   org)
-    request_path="organization/token/${requested_profile}"
+    request_path="organization/token/${profile_name}"
     ;;
   *)
     echo "Error: unrecognized profile prefix '${profile_prefix}'. Use 'pipeline:' or 'org:'." >&2
