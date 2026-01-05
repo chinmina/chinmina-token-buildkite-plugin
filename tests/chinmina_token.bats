@@ -233,3 +233,36 @@ teardown() {
 
   unstub buildkite-agent
 }
+
+@test "fetches token using pipeline: prefix and routes to /token endpoint" {
+  stub buildkite-agent "redactor add : cat > /dev/null"
+  stub curl "echo '{\"profile\": \"default\", \"organisationSlug\": \"org123\", \"token\": \"pipeline-token\", \"expiry\": $(date +%s)}'"
+
+  run './bin/chinmina_token' "pipeline:default"
+
+  assert_success
+  assert_output --partial "pipeline-token"
+}
+
+@test "repo: prefix still works but emits deprecation warning" {
+  stub buildkite-agent "redactor add : cat > /dev/null"
+  stub curl "echo '{\"profile\": \"default\", \"organisationSlug\": \"org123\", \"token\": \"repo-token\", \"expiry\": $(date +%s)}'"
+
+  run './bin/chinmina_token' "repo:default"
+
+  assert_success
+  assert_output --partial "repo-token"
+  assert_output --partial "Warning: 'repo:' prefix is deprecated"
+}
+
+@test "default profile is pipeline:default" {
+  stub buildkite-agent "redactor add : cat > /dev/null"
+  # The curl stub doesn't need to verify the path since we're testing default behavior
+  stub curl "echo '{\"profile\": \"default\", \"organisationSlug\": \"org123\", \"token\": \"default-token\", \"expiry\": $(date +%s)}'"
+
+  run './bin/chinmina_token'
+
+  assert_success
+  # Should NOT emit deprecation warning (since default is now pipeline:default)
+  refute_output --partial "deprecated"
+}

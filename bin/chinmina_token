@@ -6,7 +6,7 @@ script_dir=$(dirname "${BASH_SOURCE[0]}")
 #
 # Retrieves a GitHub token from Chinmina Bridge for the supplied profile name.
 # If none is given, the token for the current pipeline is returned
-# ("repo:default").
+# ("pipeline:default").
 #
 # This library function is added to the PATH by the plugin's environment hook.
 # The `CHINMINA_TOKEN_LIBRARY_FUNCTION_` variables are set by the environment
@@ -17,7 +17,7 @@ script_dir=$(dirname "${BASH_SOURCE[0]}")
 #
 # Usage: chinmina_token <profile> [url] [audience]
 #
-profile_name=${1:-"repo:default"}
+profile_name=${1:-"pipeline:default"}
 url="${2:-${CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL:-}}"
 audience="${3:-${CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE:-chinmina:default}}"
 
@@ -46,7 +46,10 @@ if ! oidc_auth_token="$(cache_read "${BUILDKITE_JOB_ID}")"; then
   cache_write "${BUILDKITE_JOB_ID}" "${oidc_auth_token}"
 fi
 
-if [[ "${profile_name}" == repo:* ]]; then
+if [[ "${profile_name}" == pipeline:* ]]; then
+  request_path="token"
+elif [[ "${profile_name}" == repo:* ]]; then
+  echo -e "\033[33mWarning: 'repo:' prefix is deprecated. Use 'pipeline:' instead. This will be removed in the next major version.\033[0m" >&2
   request_path="token"
 else
   request_path="organization/token/${profile_name}"

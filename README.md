@@ -33,11 +33,11 @@ steps:
       # GITHUB_TOKEN is automatically available
       gh release download --repo myorg/myrepo --pattern "*.zip"
     plugins:
-      - chinmina/chinmina-token#v1.2.0:
+      - chinmina/chinmina-token#v1.2.1:
           chinmina-url: "https://chinmina-bridge-url"
           audience: "chinmina:your-github-organization"
           environment:
-            - GITHUB_TOKEN=repo:default
+            - GITHUB_TOKEN=pipeline:default
 ```
 
 > [!TIP]
@@ -68,9 +68,9 @@ steps:
       # GITHUB_TOKEN is automatically available
       gh release download --repo myorg/myrepo --pattern "*.zip"
     plugins:
-      - chinmina/chinmina-token#v1.2.0:
+      - chinmina/chinmina-token#v1.2.1:
           environment:
-            - GITHUB_TOKEN=repo:default
+            - GITHUB_TOKEN=pipeline:default
 ```
 
 
@@ -90,11 +90,11 @@ steps:
       # Deploy using different token
       gh release create --repo myorg/releases "$VERSION"
     plugins:
-      - chinmina/chinmina-token#v1.2.0:
+      - chinmina/chinmina-token#v1.2.1:
           chinmina-url: "https://chinmina-bridge-url"
           audience: "chinmina:your-github-organization"
           environment:
-            - GITHUB_TOKEN=repo:default
+            - GITHUB_TOKEN=pipeline:default
             - GITHUB_NPM_TOKEN=org:npm-packages
 ```
 
@@ -106,7 +106,7 @@ For dynamic token selection or complex scripting scenarios, use the
 ```yml
 steps:
   - plugins:
-      - chinmina/chinmina-token#v1.2.0:
+      - chinmina/chinmina-token#v1.2.1:
           chinmina-url: "https://chinmina-bridge-url"
           audience: "chinmina:your-github-organization"
 ```
@@ -122,7 +122,7 @@ else
 fi
 
 # Or get a token for the repository
-export GITHUB_TOKEN=$(chinmina_token "repo:default")
+export GITHUB_TOKEN=$(chinmina_token "pipeline:default")
 
 # Use with gh CLI
 gh release download --repo "${repo}" \
@@ -171,14 +171,14 @@ profiles. Each entry uses the format `VAR_NAME=profile`.
 
 #### Profile formats
 
-- `repo:default` - Token for the current repository
+- `pipeline:default` - Token for the current repository
 - `org:profile-name` - Token for an organizational profile
 
 #### Example
 
 ```yml
 environment:
-  - GITHUB_TOKEN=repo:default
+  - GITHUB_TOKEN=pipeline:default
   - GITHUB_NPM_TOKEN=org:npm-packages
   - GITHUB_HOMEBREW_TOKEN=org:homebrew-tap
 ```
@@ -186,7 +186,7 @@ environment:
 **Equivalent manual approach:**
 
 ```bash
-export GITHUB_TOKEN=$(chinmina_token "repo:default")
+export GITHUB_TOKEN=$(chinmina_token "pipeline:default")
 export GITHUB_NPM_TOKEN=$(chinmina_token "org:npm-packages")
 export GITHUB_HOMEBREW_TOKEN=$(chinmina_token "org:homebrew-tap")
 ```
