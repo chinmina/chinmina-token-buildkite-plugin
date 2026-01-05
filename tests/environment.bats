@@ -188,9 +188,9 @@ run_environment() {
   # Agent infrastructure sets these
   export CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL="http://agent-url"
   export CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE="agent-audience"
-  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_0="GITHUB_TOKEN=repo:default"
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_0="GITHUB_TOKEN=pipeline:default"
 
-  stub chinmina_token "repo:default http://agent-url agent-audience : echo 'token-from-agent-config'"
+  stub chinmina_token "pipeline:default http://agent-url agent-audience : echo 'token-from-agent-config'"
 
   run_environment "$PWD/hooks/environment"
 
@@ -210,9 +210,9 @@ run_environment() {
   # Plugin overrides
   export BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL="http://plugin-url"
   export BUILDKITE_PLUGIN_CHINMINA_TOKEN_AUDIENCE="plugin-audience"
-  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_0="GITHUB_TOKEN=repo:default"
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_0="GITHUB_TOKEN=pipeline:default"
 
-  stub chinmina_token "repo:default http://plugin-url plugin-audience : echo 'token-from-plugin-config'"
+  stub chinmina_token "pipeline:default http://plugin-url plugin-audience : echo 'token-from-plugin-config'"
 
   run_environment "$PWD/hooks/environment"
 
@@ -226,9 +226,9 @@ run_environment() {
 
 @test "Environment mode: uses default audience when not provided" {
   export BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL="http://test-url"
-  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_0="GITHUB_TOKEN=repo:default"
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_0="GITHUB_TOKEN=pipeline:default"
 
-  stub chinmina_token "repo:default http://test-url chinmina:default : echo 'token-with-default-audience'"
+  stub chinmina_token "pipeline:default http://test-url chinmina:default : echo 'token-with-default-audience'"
 
   run_environment "$PWD/hooks/environment"
 
@@ -239,7 +239,7 @@ run_environment() {
 }
 
 @test "Environment mode: fails when no URL configured anywhere" {
-  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_0="GITHUB_TOKEN=repo:default"
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_0="GITHUB_TOKEN=pipeline:default"
   # No URL provided via plugin or agent environment
 
   run "$PWD/hooks/environment"
