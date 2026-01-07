@@ -290,3 +290,33 @@ teardown() {
   assert_output --partial "Error: unrecognized profile prefix 'unknown'"
   assert_output --partial "Use 'pipeline:' or 'org:'"
 }
+
+@test "works when TMPDIR is not set and defaults to /tmp" {
+  # Unset TMPDIR to test default behavior
+  unset TMPDIR
+
+  # Remove any existing cache file from setup
+  rm -rf "/tmp/chinmina-oidc-${BUILDKITE_JOB_ID}.cache"
+
+  local oidc_token="default-fallback-token"
+  local profile="pipeline:default"
+
+  stub buildkite-agent \
+    "oidc request-token --claim \"pipeline_id,cluster_id,cluster_name,queue_id,queue_key\" --audience \"default\" : echo '${oidc_token}'" \
+    "redactor add : cat > /dev/null"
+
+  stub curl "echo '{\"profile\": \"default\", \"organisationSlug\": \"org123\", \"token\": \"fallback-success-token\", \"expiry\": $(date +%s)}'"
+
+  run './bin/chinmina_token' "$profile"
+
+  assert_success
+  assert_output --partial "fallback-success-token"
+
+  # Verify cache file was created in /tmp
+  [[ -f "/tmp/chinmina-oidc-${BUILDKITE_JOB_ID}.cache" ]]
+
+  # Clean up
+  rm -f "/tmp/chinmina-oidc-${BUILDKITE_JOB_ID}.cache"
+
+  unstub buildkite-agent
+}
