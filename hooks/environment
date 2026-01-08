@@ -17,10 +17,11 @@ plugin_read_list() {
 
 # Configuration resolution with fallback hierarchy:
 # 1. Plugin configuration (BUILDKITE_PLUGIN_CHINMINA_TOKEN_*)
-# 2. Agent-set defaults (CHINMINA_TOKEN_LIBRARY_FUNCTION_*)
-# 3. Built-in default (audience only: "chinmina:default")
-url="${BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL:-${CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL:-}}"
-audience="${BUILDKITE_PLUGIN_CHINMINA_TOKEN_AUDIENCE:-${CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE:-chinmina:default}}"
+# 2. Simple environment defaults (CHINMINA_DEFAULT_*)
+# 3. Agent-set defaults (CHINMINA_TOKEN_LIBRARY_FUNCTION_*) [backward compat]
+# 4. Built-in default (audience only: "chinmina:default")
+url="${BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL:-${CHINMINA_DEFAULT_URL:-${CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL:-}}}"
+audience="${BUILDKITE_PLUGIN_CHINMINA_TOKEN_AUDIENCE:-${CHINMINA_DEFAULT_AUDIENCE:-${CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE:-chinmina:default}}}"
 
 # Validate required configuration
 if [[ -z "$url" ]]; then

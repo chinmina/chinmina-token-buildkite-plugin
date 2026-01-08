@@ -31,6 +31,8 @@ teardown() {
   unset BUILDKITE_AGENT_ACCESS_TOKEN
   unset TMPDIR
   unset TEST_USE_STUBS
+  unset CHINMINA_DEFAULT_URL
+  unset CHINMINA_DEFAULT_AUDIENCE
 }
 
 run_environment() {
@@ -259,6 +261,132 @@ run_environment() {
 
   assert_success
   assert_line 'MY_TOKEN=myorg-token'
+
+  unstub chinmina_token
+}
+
+# CHINMINA_DEFAULT_* environment variable tests
+
+@test "Library mode: uses CHINMINA_DEFAULT_URL when plugin parameter absent" {
+  export CHINMINA_DEFAULT_URL="http://default-url"
+  export CHINMINA_DEFAULT_AUDIENCE="default-audience"
+
+  run_environment "$PWD/hooks/environment"
+
+  assert_success
+  assert_line 'CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL=http://default-url'
+  assert_line 'CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE=default-audience'
+  assert_line --regexp ":$PWD/hooks/../bin\$"
+}
+
+@test "Library mode: plugin parameter overrides CHINMINA_DEFAULT_URL" {
+  export CHINMINA_DEFAULT_URL="http://default-url"
+  export CHINMINA_DEFAULT_AUDIENCE="default-audience"
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL="http://plugin-url"
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_AUDIENCE="plugin-audience"
+
+  run_environment "$PWD/hooks/environment"
+
+  assert_success
+  assert_line 'CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL=http://plugin-url'
+  assert_line 'CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE=plugin-audience'
+}
+
+@test "Library mode: CHINMINA_DEFAULT_URL overrides CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL" {
+  export CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL="http://old-default-url"
+  export CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE="old-default-audience"
+  export CHINMINA_DEFAULT_URL="http://new-default-url"
+  export CHINMINA_DEFAULT_AUDIENCE="new-default-audience"
+
+  run_environment "$PWD/hooks/environment"
+
+  assert_success
+  assert_line 'CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL=http://new-default-url'
+  assert_line 'CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE=new-default-audience'
+}
+
+@test "Library mode: uses CHINMINA_DEFAULT_AUDIENCE when plugin parameter absent" {
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL="http://test-url"
+  export CHINMINA_DEFAULT_AUDIENCE="default-audience"
+
+  run_environment "$PWD/hooks/environment"
+
+  assert_success
+  assert_line 'CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL=http://test-url'
+  assert_line 'CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE=default-audience'
+}
+
+@test "Library mode: falls back to chinmina:default when no audience configured" {
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL="http://test-url"
+
+  run_environment "$PWD/hooks/environment"
+
+  assert_success
+  assert_line 'CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL=http://test-url'
+  assert_line 'CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE=chinmina:default'
+}
+
+@test "Environment mode: uses CHINMINA_DEFAULT_* and does not modify PATH" {
+  export CHINMINA_DEFAULT_URL="http://default-url"
+  export CHINMINA_DEFAULT_AUDIENCE="default-audience"
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_0="GITHUB_TOKEN=pipeline:default"
+
+  stub chinmina_token "pipeline:default http://default-url default-audience : echo 'token-from-default'"
+
+  run_environment "$PWD/hooks/environment"
+
+  assert_success
+  assert_line 'GITHUB_TOKEN=token-from-default'
+  refute_line --regexp ":$PWD/hooks/../bin\$"
+
+  unstub chinmina_token
+}
+
+@test "Environment mode: plugin parameter overrides CHINMINA_DEFAULT_*" {
+  export CHINMINA_DEFAULT_URL="http://default-url"
+  export CHINMINA_DEFAULT_AUDIENCE="default-audience"
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL="http://plugin-url"
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_AUDIENCE="plugin-audience"
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_0="GITHUB_TOKEN=pipeline:default"
+
+  stub chinmina_token "pipeline:default http://plugin-url plugin-audience : echo 'token-from-plugin'"
+
+  run_environment "$PWD/hooks/environment"
+
+  assert_success
+  assert_line 'GITHUB_TOKEN=token-from-plugin'
+  refute_line --regexp ":$PWD/hooks/../bin\$"
+
+  unstub chinmina_token
+}
+
+@test "Environment mode: CHINMINA_DEFAULT_* overrides CHINMINA_TOKEN_LIBRARY_FUNCTION_*" {
+  export CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL="http://old-default-url"
+  export CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE="old-default-audience"
+  export CHINMINA_DEFAULT_URL="http://new-default-url"
+  export CHINMINA_DEFAULT_AUDIENCE="new-default-audience"
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_0="GITHUB_TOKEN=pipeline:default"
+
+  stub chinmina_token "pipeline:default http://new-default-url new-default-audience : echo 'token-from-new-default'"
+
+  run_environment "$PWD/hooks/environment"
+
+  assert_success
+  assert_line 'GITHUB_TOKEN=token-from-new-default'
+
+  unstub chinmina_token
+}
+
+@test "Environment mode: uses default audience when no CHINMINA_DEFAULT_AUDIENCE set" {
+  export CHINMINA_DEFAULT_URL="http://default-url"
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_0="GITHUB_TOKEN=pipeline:default"
+
+  stub chinmina_token "pipeline:default http://default-url chinmina:default : echo 'token-with-builtin-default'"
+
+  run_environment "$PWD/hooks/environment"
+
+  assert_success
+  assert_line 'GITHUB_TOKEN=token-with-builtin-default'
 
   unstub chinmina_token
 }
