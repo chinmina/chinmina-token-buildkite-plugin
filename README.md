@@ -56,9 +56,11 @@ function without further configuration.
 Add the following to the agent `environment` hook:
 
 ```shell
+# set the default configuration for this and the git credentials plugin
 export CHINMINA_DEFAULT_URL="https://chinmina-bridge.example.com"
 export CHINMINA_DEFAULT_AUDIENCE="chinmina:your-organization"
 
+# add the library function to the path
 source /buildkite/plugins/chinmina-token-buildkite-plugin/hooks/environment
 ```
 
