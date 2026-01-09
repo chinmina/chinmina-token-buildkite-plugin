@@ -62,8 +62,8 @@ export CHINMINA_DEFAULT_AUDIENCE="chinmina:your-organization"
 source /buildkite/plugins/chinmina-token-buildkite-plugin/hooks/environment
 ```
 
-This installs the library function and sets the default configuration for the
-plugin _and_ the [Git credentials][git-credentials] plugin.
+This installs the library function and sets the shared default configuration for this
+plugin _and_ the sibling [Git credentials][git-credentials] plugin.
 
 <details>
 <summary>Alternative approach</summary>
