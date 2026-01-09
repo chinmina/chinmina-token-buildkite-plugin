@@ -47,10 +47,32 @@ steps:
 ### Agent configuration
 
 If you install the plugin on the agent by default (in the bootstrap of the
-Elastic Stack, for example), you can default the configuration for all
-pipelines.
+Elastic Stack, for example), you can default the configuration for all pipelines
+using environment variables AND make use of the `chinmina_token` library
+function without further configuration.
+
+### Plugin defaults with library function (recommended)
 
 Add the following to the agent `environment` hook:
+
+```shell
+# set the default configuration for this and the git credentials plugin
+export CHINMINA_DEFAULT_URL="https://chinmina-bridge.example.com"
+export CHINMINA_DEFAULT_AUDIENCE="chinmina:your-organization"
+
+# add the library function to the path
+source /buildkite/plugins/chinmina-token-buildkite-plugin/hooks/environment
+```
+
+This installs the library function and sets the shared default configuration for this
+plugin _and_ the sibling [Git credentials][git-credentials] plugin.
+
+<details>
+<summary>Alternative approach</summary>
+
+<div>
+It's also possible to install the library function using the plugin parameters,
+but this is no longer necessary.
 
 ```shell
 BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL="${BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL:-https://chinmina-bridge.example.com}" \
@@ -58,8 +80,12 @@ BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL="${BUILDKITE_PLUGIN_CHINMINA_TOKEN_
     source /buildkite/plugins/chinmina-token-buildkite-plugin/hooks/environment
 ```
 
-Then in your pipeline you can set the environment without specifying the URL and
-audience again.
+</div>
+</details>
+
+#### Using defaults in pipelines
+
+With either approach, pipelines can omit the URL and audience:
 
 ```yml
 steps:
@@ -143,6 +169,31 @@ gh release download --repo "${repo}" \
 
 ## Configuration
 
+### Environment Variables
+
+For organization-wide consistency, you can set default values using environment
+variables that apply when plugin parameters are not specified:
+
+- `CHINMINA_DEFAULT_URL`: Default Chinmina Bridge URL
+- `CHINMINA_DEFAULT_AUDIENCE`: Default OIDC audience
+
+**Priority order:**
+1. Plugin parameters (highest)
+2. `CHINMINA_DEFAULT_*` environment variables
+3. `CHINMINA_TOKEN_LIBRARY_FUNCTION_*` environment variables (backward compatibility)
+4. Built-in defaults (audience only: `chinmina:default`)
+
+Set these in your agent's environment hook (`/etc/buildkite-agent/hooks/environment`
+or via agent bootstrap configuration):
+
+```bash
+export CHINMINA_DEFAULT_URL="https://chinmina-bridge.company.internal"
+export CHINMINA_DEFAULT_AUDIENCE="chinmina:production"
+```
+
+With environment variables set, pipelines can omit common configuration or
+override when needed for specific cases.
+
 ### `chinmina-url` (Required, string)
 
 The URL of the [`chinmina-bridge`][chinmina-bridge] helper agent that vends a
@@ -223,4 +274,5 @@ Contributions are welcome! Raise a PR, and include tests with your changes.
 
 [chinmina-bridge]: https://chinmina.github.io/introduction/
 [chinmina-integration]: https://chinmina.github.io/guides/buildkite-integration/
+[git-credentials]: https://github.com/chinmina/chinmina-git-credentials-buildkite-plugin/
 [organization-profiles]: https://chinmina.github.io/reference/organization-profile/

@@ -19,14 +19,17 @@ configuration:
       type: string
       description: |
         The URL of the Chinmina Bridge agent that creates a token for a pipeline.
-        Required unless set by agent infrastructure via CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL.
+
+        Priority: plugin parameter > CHINMINA_DEFAULT_URL environment variable >
+        CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL. Required via at least one mechanism.
     audience:
       type: string
       description: |
         (Default: `chinmina:default`) The audience to use for the Buildkite OIDC
-        JWT that is sent to the vendor agent. Falls back to agent environment
-        CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE if not provided. Must match the
-        setting in the vendor agent.
+        JWT that is sent to the vendor agent. Must match the setting in the vendor agent.
+
+        Priority: plugin parameter > CHINMINA_DEFAULT_AUDIENCE environment variable >
+        CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE > "chinmina:default".
     environment:
       type: array
       description: |
