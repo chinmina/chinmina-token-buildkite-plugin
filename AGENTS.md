@@ -38,14 +38,14 @@ The plugin follows Buildkite's standard plugin hook structure:
 2. **Helper Script** (`bin/chinmina_token`):
    - Retrieves GitHub tokens from the Chinmina Bridge service
    - Accepts an optional profile argument (defaults to "default")
-   - Caches OIDC tokens for 5 minutes using encrypted storage in `${TMPDIR}/chinmina-oidc-${BUILDKITE_JOB_ID}.cache`
+   - Caches OIDC tokens for 5 minutes using encrypted storage in `${TMPDIR:-/tmp}/chinmina-oidc-${BUILDKITE_JOB_ID}.cache`
    - Encryption uses OpenSSL with AES-256-CBC and BUILDKITE_AGENT_ACCESS_TOKEN as the passphrase
    - Makes HTTP POST requests to Chinmina Bridge with OIDC JWT authorization
-   - Requires TMPDIR environment variable to be set
+   - Uses TMPDIR environment variable if set, otherwise defaults to `/tmp`
 
 ### Token Retrieval Flow
 
-1. Script validates TMPDIR environment variable is set
+1. Script determines cache directory (uses TMPDIR if set, otherwise defaults to `/tmp`)
 2. Checks for cached OIDC token (valid for 5 minutes) and attempts decryption
 3. If cache miss or decryption fails, requests new OIDC token from Buildkite Agent using configured audience
 4. Encrypts and caches the new OIDC token using OpenSSL (AES-256-CBC with BUILDKITE_AGENT_ACCESS_TOKEN as passphrase)
@@ -73,9 +73,10 @@ A separate caching library (`lib/cache.bash`) handles encrypted token storage:
 
 - **Encryption**: Uses OpenSSL with AES-256-CBC, PBKDF2 with 100,000 iterations
 - **Key Material**: BUILDKITE_AGENT_ACCESS_TOKEN serves as the encryption passphrase
-- **Cache Location**: `${TMPDIR}/chinmina-oidc-${job_id}.cache` with 600 permissions
+- **Cache Location**: `${cache_dir}/chinmina-oidc-${job_id}.cache` with 600 permissions (cache_dir defaults to `/tmp` if TMPDIR not set)
 - **Graceful Degradation**: If OpenSSL is unavailable, caching is silently skipped
 - **TTL**: Cache files are valid for 5 minutes from last modification
+- **API Design**: Cache functions accept cache directory as an explicit parameter rather than relying on global environment variables
 
 ### Test Structure
 
