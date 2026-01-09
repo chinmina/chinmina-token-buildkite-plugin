@@ -47,10 +47,11 @@ steps:
 ### Agent configuration
 
 If you install the plugin on the agent by default (in the bootstrap of the
-Elastic Stack, for example), you can default the configuration for all
-pipelines using environment variables.
+Elastic Stack, for example), you can default the configuration for all pipelines
+using environment variables AND make use of the `chinmina_token` library
+function without further configuration.
 
-#### Simple approach (recommended)
+### Plugin defaults with library function (recommended)
 
 Add the following to the agent `environment` hook:
 
@@ -61,15 +62,24 @@ export CHINMINA_DEFAULT_AUDIENCE="chinmina:your-organization"
 source /buildkite/plugins/chinmina-token-buildkite-plugin/hooks/environment
 ```
 
-#### Alternative approach
+This installs the library function and sets the default configuration for the
+plugin _and_ the [Git credentials][git-credentials] plugin.
 
-For compatibility with older configurations:
+<details>
+<summary>Alternative approach</summary>
+
+<div>
+It's also possible to install the library function using the plugin parameters,
+but this is no longer necessary.
 
 ```shell
 BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL="${BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL:-https://chinmina-bridge.example.com}" \
   BUILDKITE_PLUGIN_CHINMINA_TOKEN_AUDIENCE="${BUILDKITE_PLUGIN_CHINMINA_TOKEN_AUDIENCE:-chinmina:your-organization}" \
     source /buildkite/plugins/chinmina-token-buildkite-plugin/hooks/environment
 ```
+
+</div>
+</details>
 
 #### Using defaults in pipelines
 
@@ -262,4 +272,5 @@ Contributions are welcome! Raise a PR, and include tests with your changes.
 
 [chinmina-bridge]: https://chinmina.github.io/introduction/
 [chinmina-integration]: https://chinmina.github.io/guides/buildkite-integration/
+[git-credentials]: https://github.com/chinmina/chinmina-git-credentials-buildkite-plugin/
 [organization-profiles]: https://chinmina.github.io/reference/organization-profile/
