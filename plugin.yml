@@ -36,5 +36,14 @@ configuration:
         Array of environment variable assignments in the format 'VAR_NAME=org:profile'.
         Each entry exports an environment variable containing a token from the specified profile.
         When this parameter is present, the plugin operates in Environment Mode (PATH is not modified).
+    repository-scope:
+      type: string
+      description: |
+        The repository name (without owner prefix) to scope the token to. Only valid in
+        Environment Mode alongside `environment`. When set, each token request is narrowed
+        to this single repository. The profile in Chinmina Bridge must use
+        `{{caller-scoped-repository}}` for this to take effect.
+
+        Incompatible with Library Mode (no `environment` parameter).
   additionalProperties: false
   required: []
