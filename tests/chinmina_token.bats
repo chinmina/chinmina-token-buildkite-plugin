@@ -320,3 +320,37 @@ teardown() {
 
   unstub buildkite-agent
 }
+
+@test "appends repository-scope as query parameter to org token request" {
+  # Custom curl stub that captures its full argument list
+  cat > "${STUB_BIN_DIR}/curl" << CURLSTUB
+#!/bin/bash
+echo "\$@" >> "${TMPDIR}/curl_invocation"
+echo '{"token": "scoped-hotel-token"}'
+CURLSTUB
+  chmod +x "${STUB_BIN_DIR}/curl"
+
+  stub buildkite-agent "redactor add : cat > /dev/null"
+
+  run './bin/chinmina_token' "--repository-scope=hotel" "org:agent-workflows"
+
+  assert_success
+  assert_output --partial "scoped-hotel-token"
+
+  run grep -q "organization/token/agent-workflows?repository-scope=hotel" "${TMPDIR}/curl_invocation"
+  assert_success
+}
+
+@test "rejects --repository-scope for non-org profiles" {
+  run './bin/chinmina_token' "--repository-scope=hotel" "pipeline:default"
+
+  assert_failure
+  assert_output --partial "Error: --repository-scope is only supported for 'org:' profiles"
+}
+
+@test "rejects --repository-scope with invalid characters" {
+  run './bin/chinmina_token' "--repository-scope=hotel&evil=1" "org:agent-workflows"
+
+  assert_failure
+  assert_output --partial "Error: invalid repository scope 'hotel&evil=1'"
+}

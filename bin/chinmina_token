@@ -15,8 +15,27 @@ script_dir=$(dirname "${BASH_SOURCE[0]}")
 # A caller may override the URL and audience by passing them directly as
 # parameters.
 #
-# Usage: chinmina_token <profile> [url] [audience]
+# Usage: chinmina_token [--repository-scope=<repo>] <profile> [url] [audience]
 #
+repository_scope=""
+args=()
+for arg in "$@"; do
+  case "${arg}" in
+    --repository-scope=*)
+      repository_scope="${arg#--repository-scope=}"
+      ;;
+    *)
+      args+=("${arg}")
+      ;;
+  esac
+done
+set -- "${args[@]+"${args[@]}"}"
+
+if [[ -n "${repository_scope}" && ! "${repository_scope}" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+  echo "Error: invalid repository scope '${repository_scope}'. Must contain only alphanumeric characters, underscores, and hyphens." >&2
+  exit 1
+fi
+
 requested_profile=${1:-"pipeline:default"}
 url="${2:-${CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL:-}}"
 audience="${3:-${CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE:-chinmina:default}}"
@@ -66,14 +85,25 @@ fi
 # Determine request path based on prefix
 case "${profile_prefix}" in
   pipeline)
+    if [[ -n "${repository_scope}" ]]; then
+      echo "Error: --repository-scope is only supported for 'org:' profiles" >&2
+      exit 1
+    fi
     request_path="token/${profile_name}"
     ;;
   repo)
+    if [[ -n "${repository_scope}" ]]; then
+      echo "Error: --repository-scope is only supported for 'org:' profiles" >&2
+      exit 1
+    fi
     echo -e "\033[33mWarning: 'repo:' prefix is deprecated. Use 'pipeline:' instead. This will be removed in the next major version.\033[0m" >&2
     request_path="token/${profile_name}"
     ;;
   org)
     request_path="organization/token/${profile_name}"
+    if [[ -n "${repository_scope}" ]]; then
+      request_path="${request_path}?repository-scope=${repository_scope}"
+    fi
     ;;
   *)
     echo "Error: unrecognized profile prefix '${profile_prefix}'. Use 'pipeline:' or 'org:'." >&2
