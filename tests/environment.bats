@@ -390,3 +390,34 @@ run_environment() {
 
   unstub chinmina_token
 }
+
+@test "Environment mode: forwards repository-scope to each chinmina_token call" {
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL="test-url"
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_AUDIENCE="test-audience"
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_0="WRITE_TOKEN=org:agent-write"
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_ENVIRONMENT_1="READ_TOKEN=org:agent-read"
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_REPOSITORY_SCOPE="hotel"
+
+  stub chinmina_token \
+    "org:agent-write test-url test-audience --repository-scope=hotel : echo 'write-token'" \
+    "org:agent-read test-url test-audience --repository-scope=hotel : echo 'read-token'"
+
+  run_environment "$PWD/hooks/environment"
+
+  assert_success
+  assert_line 'WRITE_TOKEN=write-token'
+  assert_line 'READ_TOKEN=read-token'
+
+  unstub chinmina_token
+}
+
+
+@test "Library mode: fails when repository-scope is configured" {
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_CHINMINA_URL="test-url"
+  export BUILDKITE_PLUGIN_CHINMINA_TOKEN_REPOSITORY_SCOPE="hotel"
+
+  run "$PWD/hooks/environment"
+
+  assert_failure
+  assert_output --partial "repository-scope"
+}
