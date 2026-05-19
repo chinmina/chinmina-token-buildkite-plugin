@@ -89,5 +89,5 @@ else
   # Export configuration and add to PATH for manual usage
   export CHINMINA_TOKEN_LIBRARY_FUNCTION_CHINMINA_URL="${url}"
   export CHINMINA_TOKEN_LIBRARY_FUNCTION_AUDIENCE="${audience}"
-  export PATH="${PATH}:${library_function_path}"
+  export PATH="${library_function_path}:${PATH}"
 fi
